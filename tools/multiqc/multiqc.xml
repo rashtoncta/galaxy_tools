@@ -19,13 +19,13 @@
           #else if $file.software == "cutadapt"
               cat ${file.input_file} > dir/'${file.input_file.display_name}'.txt;
               ## replace header for old cutadapt release
-              sed -i 's/You are running/This is/' ${file.input_file};
+              sed -i 's/You are running/This is/' dir/'${file.input_file.display_name}'.txt;
           #else if $file.software == "featurecounts"
               ## remove spaces and coton to skip multiqc crash
-              cat ${file.input_file} > dir/'${file.input_file.display_name}'.summary;
+              cat ${file.input_file} > dir/featurecounts_result.summary;
               ## remove spaces and coton to skip multiqc crash
-              sed -i 's/:/_/' dir/'${file.input_file.display_name}'.summary;
-              sed -i 's/ /_/' dir/'${file.input_file.display_name}'.summary;
+              sed -i 's/:/_/g' dir/featurecounts_result.summary;
+              sed -i 's/ /_/g' dir/featurecounts_result.summary;
           #else
               cat ${file.input_file} > dir/'${file.input_file.display_name}';
           #end if
