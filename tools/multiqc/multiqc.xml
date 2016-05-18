@@ -16,6 +16,18 @@
           #else if $file.software == "tophat"
               ## test input file
               if [[ '${file.input_file.display_name}' =~ align_summary$ ]]; then cat ${file.input_file} > dir/'${file.input_file.display_name}'.txt; else cat ${file.input_file} > dir/'${file.input_file.display_name}'_align_summary.txt; fi;
+          #else if $file.software == "cutadapt"
+              cat ${file.input_file} > dir/'${file.input_file.display_name}'.txt;
+              ## replace header for old cutadapt release
+              sed -i 's/You are running/This is/' ${file.input_file};
+          #else if $file.software == "featurecounts"
+              ## remove spaces and coton to skip multiqc crash
+              cat ${file.input_file} > dir/'${file.input_file.display_name}'.summary;
+              ## remove spaces and coton to skip multiqc crash
+              sed -i 's/:/_/' dir/'${file.input_file.display_name}'.summary;
+              sed -i 's/ /_/' dir/'${file.input_file.display_name}'.summary;
+          #else
+              cat ${file.input_file} > dir/'${file.input_file.display_name}';
           #end if
         #end for
 

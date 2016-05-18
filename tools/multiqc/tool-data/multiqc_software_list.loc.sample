@@ -1,2 +1,5 @@
 fastqc	FastQC (RawData file)
 tophat	Tophat (align_summary file)
+cutadapt	Cutadapt (Report file)
+samtools stats	Samtools Stats (Stats file)
+featurecounts	FeatureCounts (Summary file)
