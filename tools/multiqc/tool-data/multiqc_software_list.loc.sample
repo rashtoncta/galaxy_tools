@@ -1,0 +1,2 @@
+fastqc	FastQC (RawData file)
+tophat	Tophat (align_summary file)
