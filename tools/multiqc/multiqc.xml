@@ -14,7 +14,8 @@
               mkdir dir/fastqc_${i};
               cat ${file.input_file} > dir/fastqc_${i}/fastqc_data.txt;
           #else if $file.software == "tophat"
-              cat ${file.input_file} > dir/'${file.input_file.display_name}'.txt;
+              ## test input file
+              if [[ '${file.input_file.display_name}' =~ align_summary$ ]]; then cat ${file.input_file} > dir/'${file.input_file.display_name}'.txt; else cat ${file.input_file} > dir/'${file.input_file.display_name}'_align_summary.txt; fi;
           #end if
         #end for
 
