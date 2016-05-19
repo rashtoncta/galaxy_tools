@@ -1,5 +1,7 @@
 fastqc	FastQC (RawData file)
 tophat	Tophat (align_summary file)
 cutadapt	Cutadapt (Report file)
-samtools stats	Samtools Stats (Stats file)
+samtools_stats	Samtools Stats (Stats file)
 featurecounts	FeatureCounts (Summary file)
+picard	Picard (MarkDuplicates metrics file, CollectGTBiasMetrics Summary data file, CollectInsertSizeMetrics file)
+bowtie2	Bowtie2 (Mapping stats file)
