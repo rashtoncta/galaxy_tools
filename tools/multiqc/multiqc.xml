@@ -1,4 +1,3 @@
-
 <tool id="multiqc" name="multiqc" version="0.6">
     <description>aggregate results from bioinformatics analyses across many samples into a single report</description>
     <requirements>
@@ -8,48 +7,55 @@
         <exit_code range="1:" />
     </stdio>
     <command>
-        mkdir dir;
-        #for $i, $file in enumerate( $results )
-          #if $file.software == "fastqc"
+        mkdir multiqc_WDir;
+        
+        #for $i, $repeat in enumerate( $results )
 
-              ## create a directory for this repeat
-              mkdir dir/fastqc_${i};
+          mkdir multiqc_WDir/${repeat.software}_${i};
 
-              #for $k, $onefile in enumerate ( $file.input_file )
-                  ## create a directory for each file
-                  mkdir dir/fastqc_${i}/$k;
-                  cat ${onefile} > dir/fastqc_${i}/$k/fastqc_data.txt;
+          #if $repeat.software == "fastqc"
+
+              #for $k, $file in enumerate ( $repeat.input_file )
+                  ## create a directory for each file because of the unqiue name file parsing
+                  mkdir multiqc_WDir/${repeat.software}_${i}/file_${k};
+                  cat ${file} > multiqc_WDir/${repeat.software}_${i}/file_$k/fastqc_data.txt;
               #end for           
 
-          #else if $file.software == "tophat"
-              #for $onefile in $file.input_file
-                  ## test input file
-                  if [[ '${onefile.display_name}' =~ align_summary$ ]]; then cat ${onefile} > dir/'${onefile.display_name}'.txt; else cat ${onefile} > dir/'${onefile.display_name}'_align_summary.txt; fi;
+          #else if $repeat.software == "tophat"
+
+              #for $file in $repeat.input_file
+                  ## test if input file name contains align_summary
+                  if [[ '${file.display_name}' =~ align_summary$ ]]; then
+                       cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'.txt; else
+                       cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'_align_summary.txt; 
+                  fi;
               #end for
 
-          #else if $file.software == "cutadapt"
-              #for $onefile in $file.input_file
-                  cat ${onefile} > dir/'${onefile.display_name}'.txt;
+          #else if $repeat.software == "cutadapt"
+
+              #for $file in $repeat.input_file
+                  cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'.txt;
                   ## replace header for old cutadapt release
-                  sed -i 's/You are running/This is/' dir/'${onefile.display_name}'.txt;               
+                  sed -i 's/You are running/This is/' multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'.txt;               
               #end for
 
-          #else if $file.software == "featurecounts"
-              #for $onefile in $file.input_file
-                  ## remove spaces and coton to skip multiqc crash
-                  cat ${onefile} > dir/featurecounts_result.summary;
-                  ## remove spaces and coton to skip multiqc crash
-                  sed -i 's/:/_/g' dir/featurecounts_result.summary;
-                  sed -i 's/ /_/g' dir/featurecounts_result.summary;
+          #else if $repeat.software == "featurecounts"
+
+              #for $file in $repeat.input_file
+                  ## remove spaces and colon to skip multiqc crash
+                  cat ${file} > multiqc_WDir/${repeat.software}_${i}/featurecounts_result.summary;
+                  ## remove spaces and colon to skip multiqc crash
+                  sed -i 's/:/_/g' multiqc_WDir/${repeat.software}_${i}/featurecounts_result.summary;
+                  sed -i 's/ /_/g' multiqc_WDir/${repeat.software}_${i}/featurecounts_result.summary;
               #end for
           #else
-              #for $onefile in $file.input_file
-                  cat ${onefile} > dir/'${onefile.display_name}';
+              #for $file in $repeat.input_file
+                  cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}';
               #end for 
          #end if
         #end for
 
-        multiqc dir; 
+        multiqc multiqc_WDir; 
        
     </command>
     <inputs>
