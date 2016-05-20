@@ -70,10 +70,10 @@
         <repeat name="results" title="Results" min="1">
                 <param name="software" type="select" label="Software name">
                      <option value="fastqc">FastQC (RawData file)</option>
-                     <option value="tophat">Tophat (align_summary file)</option>
-                     <option value="cutadapt">Cutadapt (Report file)</option>
+					 <option value="cutadapt">Cutadapt (Report file)</option>
+                     <option value="tophat">Tophat2 (align_summary file)</option>
+					 <option value="featurecounts">FeatureCounts (Summary file)</option>
                      <option value="samtools_stats">Samtools Stats (Stats file)</option>
-                     <option value="featurecounts">FeatureCounts (Summary file)</option>
                      <option value="picard">Picard (MarkDuplicates metrics file, CollectGTBiasMetrics Summary data file, CollectInsertSizeMetrics file)</option>
                      <option value="bismark">Bismark (Report file)</option>
                      <!--options from_data_table="multiqc_indexes">
@@ -113,22 +113,35 @@ MultiQC searches a given directory for analysis logs and compiles a HTML report.
 
 **Inputs**
 
-MultiQC takes software outputs summary in order to create a single report. Below a list of Galaxy tools compatible:
+MultiQC takes software outputs summary in order to create a single report. Below a list of compatible Galaxy tools :
 
-  - Tophat
   - Fastqc
-  - Samtools stats
   - Cutadapt
+  - Tophat2
   - FeatureCounts
-  - Bowtie2
-  - SnpEff
+  - Samtools stats
+  - Picard
+	- MarkDuplicates metrics
+	- CollectGTBiasMetrics
+	- CollectInsertSizeMetrics
   - Bismark
+  
+  **Integrated by:**
+
+Cyril Monjeaud & Yvan Le Bras
+
+`EnginesOn &lt;http://engineson.fr/&gt;`_ & Rennes GenOuest Bio-informatics Core Facility
 
     </help>
 
  <citations>
-    <!-- Example of annotating a citation using a DOI. -->
-    <citation type="doi">10.1093/bioinformatics/btq281</citation>
+<citation type="bibtex">@proceedings{proceedings,
+    author = {Phil Ewels, Måns Magnusson, Max Käller},
+    title = {Quality control at scale: MultiQC - Intelligent analysis reporting},
+    journal = {Epigenomics of Common Disease},
+    year = {2015},
+    }
+</citation>
   </citations>
 </tool>
 
