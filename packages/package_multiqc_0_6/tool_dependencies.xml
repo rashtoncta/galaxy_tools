@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<tool_dependency>
+    <package name="multiqc" version="0.6">
+        <install version="1.0">
+            <actions>
+                <action type="download_by_url" sha256sum="3a3d6bf5c18e77f9a96cb9a7825fc44160c1c69fabf8a3c6d9ff1af7c0803b1a">https://github.com/ewels/MultiQC/archive/v0.6.zip</action>
+                <action type="make_directory">$INSTALL_DIR/lib/python</action>
+                <action type="shell_command">
+                    export PYTHONPATH=$PYTHONPATH:$INSTALL_DIR/lib/python &amp;&amp;
+                    python setup.py install --install-lib $INSTALL_DIR/lib/python --install-scripts $INSTALL_DIR/bin</action>
+                <action type="set_environment">
+                    <environment_variable action="prepend_to" name="PYTHONPATH">$INSTALL_DIR/lib/python</environment_variable>
+                    <environment_variable action="prepend_to" name="PATH">$INSTALL_DIR/bin</environment_variable>
+                </action>
+            </actions>
+        </install>
+        <readme>
+            Installation of multiqc. 
+        </readme>
+    </package>
+</tool_dependency>
