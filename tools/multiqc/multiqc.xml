@@ -115,17 +115,19 @@ MultiQC searches a given directory for analysis logs and compiles a HTML report.
 
 MultiQC takes software outputs summary in order to create a single report. Below a list of compatible Galaxy tools :
 
-  - Fastqc
-  - Cutadapt
-  - Tophat2
-  - FeatureCounts
-  - Samtools stats
-  - Picard
-	- MarkDuplicates metrics
-	- CollectGTBiasMetrics
-	- CollectInsertSizeMetrics
-  - Bismark
-  
+- Fastqc
+- Cutadapt
+- Tophat2
+- FeatureCounts
+- Samtools stats
+- Picard
+ - MarkDuplicates metrics
+ - CollectGTBiasMetrics
+ - CollectInsertSizeMetrics
+- Bismark
+
+----
+
 **Integrated by:**
 
 Cyril Monjeaud and Yvan Le Bras
