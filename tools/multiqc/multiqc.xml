@@ -126,11 +126,11 @@ MultiQC takes software outputs summary in order to create a single report. Below
 	- CollectInsertSizeMetrics
   - Bismark
   
-  **Integrated by:**
+**Integrated by:**
 
-Cyril Monjeaud & Yvan Le Bras
+Cyril Monjeaud and Yvan Le Bras
 
-`EnginesOn &lt;http://engineson.fr/&gt;`_ & Rennes GenOuest Bio-informatics Core Facility
+`EnginesOn &lt;http://engineson.fr/&gt;`_ and Rennes GenOuest Bio-informatics Core Facility
 
     </help>
 
