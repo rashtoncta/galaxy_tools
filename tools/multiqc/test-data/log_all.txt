@@ -1,0 +1,47 @@
+[2016-05-23 10:05:37,586] multiqc                                            [INFO   ]  This is MultiQC v0.6
+[2016-05-23 10:05:37,587] multiqc                                            [DEBUG  ]  Command     : /root/dependencies/multiqc/0.6/cmonjeau/package_multiqc_0_6/021c59fc29be/bin/multiqc multiqc_WDir
+[2016-05-23 10:05:37,587] multiqc                                            [DEBUG  ]  Working dir : /root/galaxy/database/jobs_directory/000/107/working
+[2016-05-23 10:05:37,587] multiqc                                            [DEBUG  ]  Template    : default
+[2016-05-23 10:05:37,587] multiqc                                            [DEBUG  ]  No MultiQC config found: /root/dependencies/multiqc/0.6/cmonjeau/package_multiqc_0_6/021c59fc29be/lib/python/multiqc-0.6-py2.7.egg/multiqc_config.yaml
+[2016-05-23 10:05:37,587] multiqc                                            [DEBUG  ]  No MultiQC config found: /root/.multiqc_config.yaml
+[2016-05-23 10:05:37,587] multiqc                                            [DEBUG  ]  No MultiQC config found: multiqc_config.yaml
+[2016-05-23 10:05:37,744] multiqc                                            [INFO   ]  Searching 'multiqc_WDir'
+[2016-05-23 10:05:37,744] multiqc                                            [DEBUG  ]  Analysing modules: snpeff, qualimap, featureCounts, methylQA, rseqc, picard, preseq, samblaster, samtools, bamtools, bismark, hicup, salmon, star, tophat, bowtie2, bowtie1, cutadapt, trimmomatic, skewer, fastq_screen, fastqc
+[2016-05-23 10:05:37,744] multiqc                                            [DEBUG  ]  Using temporary directory for creating report: /root/galaxy/database/tmp/tmpmeCIjG
+[2016-05-23 10:05:37,752] multiqc.modules.snpeff.snpeff                      [DEBUG  ]  Could not find any data in ('multiqc_WDir',)
+[2016-05-23 10:05:37,754] multiqc.modules.qualimap.qualimap                  [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:05:37,757] multiqc.modules.featureCounts.feature_counts       [INFO   ]  Found 6 reports
+[2016-05-23 10:05:37,760] multiqc.modules.methylQA.methylQA                  [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:05:37,839] multiqc.modules.rseqc.rseqc                        [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:05:37,987] multiqc.modules.picard.picard                      [INFO   ]  Found 1 dupMetrics reports
+[2016-05-23 10:05:37,988] multiqc.modules.picard.picard                      [INFO   ]  Found 1 insertSize reports
+[2016-05-23 10:05:37,993] multiqc.modules.picard.picard                      [INFO   ]  Found 1 GCbias reports
+[2016-05-23 10:05:38,017] multiqc.modules.preseq.preseq                      [DEBUG  ]  Could not find any preseq data in ('multiqc_WDir',)
+[2016-05-23 10:05:38,042] multiqc.modules.samblaster.samblaster              [DEBUG  ]  Could not find any data in ('multiqc_WDir',)
+[2016-05-23 10:05:38,079] multiqc.modules.samtools.samtools                  [INFO   ]  Found 1 reports
+[2016-05-23 10:05:38,104] multiqc.modules.bamtools.bamtools                  [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:05:38,111] multiqc.modules.bismark.bismark                    [INFO   ]  Found 1 bismark alignment reports
+[2016-05-23 10:05:38,114] multiqc.modules.hicup.hicup                        [DEBUG  ]  Could not find any HiCUP data in ('multiqc_WDir',)
+[2016-05-23 10:05:38,116] multiqc.modules.salmon.salmon                      [DEBUG  ]  Could not find any Salmon data in ('multiqc_WDir',)
+[2016-05-23 10:05:38,118] multiqc.modules.star.star                          [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:05:38,121] multiqc.modules.tophat.tophat                      [INFO   ]  Found 1 reports
+[2016-05-23 10:05:38,146] multiqc.modules.bowtie2.bowtie2                    [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:05:38,170] multiqc.modules.bowtie1.bowtie1                    [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:05:38,196] multiqc.modules.cutadapt.cutadapt                  [INFO   ]  Found 1 reports
+[2016-05-23 10:05:38,221] multiqc.modules.trimmomatic.trimmomatic            [DEBUG  ]  Could not find any Trimmomatic data in ('multiqc_WDir',)
+[2016-05-23 10:05:38,244] multiqc.modules.skewer.skewer                      [DEBUG  ]  Could not find any data in ('multiqc_WDir',)
+[2016-05-23 10:05:38,246] multiqc.modules.fastq_screen.fastq_screen          [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:05:38,313] multiqc.modules.fastqc.fastqc                      [INFO   ]  Found 2 reports
+[2016-05-23 10:05:38,318] multiqc                                            [INFO   ]  Report      : multiqc_report.html
+[2016-05-23 10:05:38,318] multiqc                                            [INFO   ]  Data        : multiqc_data
+[2016-05-23 10:05:38,319] multiqc                                            [DEBUG  ]  Moving data file from '/root/galaxy/database/tmp/tmpmeCIjG/multiqc_data/multiqc_fastqc.txt' to '/root/galaxy/database/jobs_directory/000/107/working/multiqc_data'
+[2016-05-23 10:05:38,319] multiqc                                            [DEBUG  ]  Moving data file from '/root/galaxy/database/tmp/tmpmeCIjG/multiqc_data/multiqc_picard_dups.txt' to '/root/galaxy/database/jobs_directory/000/107/working/multiqc_data'
+[2016-05-23 10:05:38,319] multiqc                                            [DEBUG  ]  Moving data file from '/root/galaxy/database/tmp/tmpmeCIjG/multiqc_data/multiqc_bismark_alignment.txt' to '/root/galaxy/database/jobs_directory/000/107/working/multiqc_data'
+[2016-05-23 10:05:38,319] multiqc                                            [DEBUG  ]  Moving data file from '/root/galaxy/database/tmp/tmpmeCIjG/multiqc_data/multiqc_cutadapt.txt' to '/root/galaxy/database/jobs_directory/000/107/working/multiqc_data'
+[2016-05-23 10:05:38,319] multiqc                                            [DEBUG  ]  Moving data file from '/root/galaxy/database/tmp/tmpmeCIjG/multiqc_data/multiqc_general_stats.txt' to '/root/galaxy/database/jobs_directory/000/107/working/multiqc_data'
+[2016-05-23 10:05:38,319] multiqc                                            [DEBUG  ]  Moving data file from '/root/galaxy/database/tmp/tmpmeCIjG/multiqc_data/multiqc_samtools.txt' to '/root/galaxy/database/jobs_directory/000/107/working/multiqc_data'
+[2016-05-23 10:05:38,319] multiqc                                            [DEBUG  ]  Moving data file from '/root/galaxy/database/tmp/tmpmeCIjG/multiqc_data/multiqc_picard_insertSize.txt' to '/root/galaxy/database/jobs_directory/000/107/working/multiqc_data'
+[2016-05-23 10:05:38,320] multiqc                                            [DEBUG  ]  Moving data file from '/root/galaxy/database/tmp/tmpmeCIjG/multiqc_data/multiqc_sources.txt' to '/root/galaxy/database/jobs_directory/000/107/working/multiqc_data'
+[2016-05-23 10:05:38,320] multiqc                                            [DEBUG  ]  Moving data file from '/root/galaxy/database/tmp/tmpmeCIjG/multiqc_data/multiqc_featureCounts.txt' to '/root/galaxy/database/jobs_directory/000/107/working/multiqc_data'
+[2016-05-23 10:05:38,320] multiqc                                            [DEBUG  ]  Moving data file from '/root/galaxy/database/tmp/tmpmeCIjG/multiqc_data/multiqc_tophat.txt.txt' to '/root/galaxy/database/jobs_directory/000/107/working/multiqc_data'
+[2016-05-23 10:05:38,395] multiqc                                            [INFO   ]  MultiQC complete

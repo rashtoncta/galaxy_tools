@@ -1,0 +1,39 @@
+[2016-05-23 10:04:17,236] multiqc                                            [INFO   ]  This is MultiQC v0.6
+[2016-05-23 10:04:17,236] multiqc                                            [DEBUG  ]  Command     : /root/dependencies/multiqc/0.6/cmonjeau/package_multiqc_0_6/021c59fc29be/bin/multiqc multiqc_WDir
+[2016-05-23 10:04:17,236] multiqc                                            [DEBUG  ]  Working dir : /root/galaxy/database/jobs_directory/000/106/working
+[2016-05-23 10:04:17,236] multiqc                                            [DEBUG  ]  Template    : default
+[2016-05-23 10:04:17,236] multiqc                                            [DEBUG  ]  No MultiQC config found: /root/dependencies/multiqc/0.6/cmonjeau/package_multiqc_0_6/021c59fc29be/lib/python/multiqc-0.6-py2.7.egg/multiqc_config.yaml
+[2016-05-23 10:04:17,236] multiqc                                            [DEBUG  ]  No MultiQC config found: /root/.multiqc_config.yaml
+[2016-05-23 10:04:17,236] multiqc                                            [DEBUG  ]  No MultiQC config found: multiqc_config.yaml
+[2016-05-23 10:04:17,383] multiqc                                            [INFO   ]  Searching 'multiqc_WDir'
+[2016-05-23 10:04:17,383] multiqc                                            [DEBUG  ]  Analysing modules: snpeff, qualimap, featureCounts, methylQA, rseqc, picard, preseq, samblaster, samtools, bamtools, bismark, hicup, salmon, star, tophat, bowtie2, bowtie1, cutadapt, trimmomatic, skewer, fastq_screen, fastqc
+[2016-05-23 10:04:17,383] multiqc                                            [DEBUG  ]  Using temporary directory for creating report: /root/galaxy/database/tmp/tmpqOU4l7
+[2016-05-23 10:04:17,390] multiqc.modules.snpeff.snpeff                      [DEBUG  ]  Could not find any data in ('multiqc_WDir',)
+[2016-05-23 10:04:17,392] multiqc.modules.qualimap.qualimap                  [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,394] multiqc.modules.featureCounts.feature_counts       [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,395] multiqc.modules.methylQA.methylQA                  [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,400] multiqc.modules.rseqc.rseqc                        [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,403] multiqc.modules.picard.picard                      [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,405] multiqc.modules.preseq.preseq                      [DEBUG  ]  Could not find any preseq data in ('multiqc_WDir',)
+[2016-05-23 10:04:17,406] multiqc.modules.samblaster.samblaster              [DEBUG  ]  Could not find any data in ('multiqc_WDir',)
+[2016-05-23 10:04:17,408] multiqc.modules.samtools.samtools                  [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,410] multiqc.modules.bamtools.bamtools                  [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,413] multiqc.modules.bismark.bismark                    [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,414] multiqc.modules.hicup.hicup                        [DEBUG  ]  Could not find any HiCUP data in ('multiqc_WDir',)
+[2016-05-23 10:04:17,416] multiqc.modules.salmon.salmon                      [DEBUG  ]  Could not find any Salmon data in ('multiqc_WDir',)
+[2016-05-23 10:04:17,418] multiqc.modules.star.star                          [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,420] multiqc.modules.tophat.tophat                      [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,422] multiqc.modules.bowtie2.bowtie2                    [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,424] multiqc.modules.bowtie1.bowtie1                    [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,429] multiqc.modules.cutadapt.cutadapt                  [INFO   ]  Found 1 reports
+[2016-05-23 10:04:17,431] multiqc.modules.trimmomatic.trimmomatic            [DEBUG  ]  Could not find any Trimmomatic data in ('multiqc_WDir',)
+[2016-05-23 10:04:17,433] multiqc.modules.skewer.skewer                      [DEBUG  ]  Could not find any data in ('multiqc_WDir',)
+[2016-05-23 10:04:17,435] multiqc.modules.fastq_screen.fastq_screen          [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,437] multiqc.modules.fastqc.fastqc                      [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2016-05-23 10:04:17,437] multiqc.plots.table                                [DEBUG  ]  Removing header percent_trimmed from general stats table, as no data
+[2016-05-23 10:04:17,438] multiqc                                            [INFO   ]  Report      : multiqc_report.html
+[2016-05-23 10:04:17,438] multiqc                                            [INFO   ]  Data        : multiqc_data
+[2016-05-23 10:04:17,438] multiqc                                            [DEBUG  ]  Moving data file from '/root/galaxy/database/tmp/tmpqOU4l7/multiqc_data/multiqc_cutadapt.txt' to '/root/galaxy/database/jobs_directory/000/106/working/multiqc_data'
+[2016-05-23 10:04:17,438] multiqc                                            [DEBUG  ]  Moving data file from '/root/galaxy/database/tmp/tmpqOU4l7/multiqc_data/multiqc_general_stats.txt' to '/root/galaxy/database/jobs_directory/000/106/working/multiqc_data'
+[2016-05-23 10:04:17,438] multiqc                                            [DEBUG  ]  Moving data file from '/root/galaxy/database/tmp/tmpqOU4l7/multiqc_data/multiqc_sources.txt' to '/root/galaxy/database/jobs_directory/000/106/working/multiqc_data'
+[2016-05-23 10:04:17,517] multiqc                                            [INFO   ]  MultiQC complete

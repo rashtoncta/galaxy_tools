@@ -805,61 +805,6 @@ tbody .sorthandle {
   background-color: #ededed;
 }
 </style>
-<style type="text/css">/* CSS for the FastQC MultiQC Module */
-
-.showhide_orig {
-  padding: 15px;
-  height:100%;
-  overflow: hidden;
-}
-.showhide_orig h4 {
-  margin-top: 0;
-}
-.s_status {
-  text-transform: capitalize;
-}
-.original-plot {
-  max-width:100%;
-  max-height: calc(100% - 60px);
-  cursor: pointer;
-}
-
-.fastqc_passfail_progress {
-  width: 100px;
-  display: inline-block;
-  margin: 0 0 -2px 20px;
-}
-
-
-#fastqc_seq_heatmap {
-  cursor: pointer;
-}
-#fastqc_seq_heatmap_div .hc-plot-wrapper {
-  height: 300px;
-}
-#fastqc_seq_heatmap_footer {
-  clear:both;
-}
-#fastqc_sequence_content_plot h5 {
-  display: inline-block;
-  height: 18px;
-}
-.fastqc_seq_heatmap_key {
-  font-size: 12px;
-}
-.fastqc_seq_heatmap_key div {
-  display: inline-block;
-  width: 120px;
-  margin: 0 8px;
-}
-.fastqc_seq_heatmap_key > span, .fastqc_seq_heatmap_key div > span {
-  display:inline-block;
-  width: 60px;
-}
-#fastqc_seq_heatmap_key_t { border-bottom: 1px solid red; }
-#fastqc_seq_heatmap_key_c { border-bottom: 1px solid blue; }
-#fastqc_seq_heatmap_key_a { border-bottom: 1px solid green; }
-#fastqc_seq_heatmap_key_g { border-bottom: 1px solid black; }</style>
 
 <!-- Include javascript files -->
 <script type="text/javascript">/*! jQuery v1.11.3 | (c) 2005, 2015 jQuery Foundation, Inc. | jquery.org/license */
@@ -3050,361 +2995,6 @@ function load_mqc_config(name){
 
 
 </script>
-<script type="text/javascript">// Javascript for the FastQC MultiQC Mod
-
-///////////////
-// Per Base Sequence Content
-///////////////
-
-// Global vars
-s_height = 10;
-num_samples = 0;
-sample_names = [];
-sample_statuses = [];
-labels = [];
-c_width = 0;
-c_height = 0;
-ypos = 0;
-max_bp = 0;
-current_single_plot = undefined;
-
-// Function to plot heatmap
-function fastqc_seq_content_heatmap() {
-    
-    // Get sample names, rename and skip hidden samples
-    sample_names = [];
-    sample_statuses = [];
-    var p_data = {};
-    var hidden_samples = 0;
-    $.each(fastqc_seq_content_data, function(s_name, data){
-        // rename sample names
-        var t_status = fastqc_passfails['sequence_content'][s_name];
-        $.each(window.mqc_rename_f_texts, function(idx, f_text){
-            if(window.mqc_rename_regex_mode){
-                var re = new RegExp(f_text,'g');
-                s_name = s_name.replace(re, window.mqc_rename_t_texts[idx]);
-            } else {
-                s_name = s_name.replace(f_text, window.mqc_rename_t_texts[idx]);
-            }
-        });
-        sample_statuses[s_name] = t_status;
-        p_data[s_name] = JSON.parse(JSON.stringify(data)); // clone data
-        
-        var hide_sample = false;
-        $.each(window.mqc_hide_f_texts, function(idx, f_text){
-            if((window.mqc_hide_regex_mode && s_name.match(f_text))  || (!window.mqc_hide_regex_mode && s_name.indexOf(f_text) > -1)){
-                hide_sample = true;
-            }
-            if(window.mqc_hide_mode == 'show'){
-                hide_sample = !hide_sample;
-            }
-        });
-        if(!hide_sample){ sample_names.push(s_name); }
-        else { hidden_samples += 1; }
-    });
-    num_samples = sample_names.length;
-    $('#fastqc_seq_heatmap_div .samples-hidden-warning, #fastqc_seq_heatmap_div .fastqc-heatmap-no-samples').remove();
-    $('#fastqc_seq_heatmap_div .hc-plot-wrapper').show();
-    if(num_samples == 0){
-        $('#fastqc_seq_heatmap_div .hc-plot-wrapper').hide();
-        $('#fastqc_seq_heatmap_div').prepend('<p class="fastqc-heatmap-no-samples text-muted">No samples found.</p>');
-    }
-    if(hidden_samples > 0){
-        $('#fastqc_seq_heatmap_div').prepend('<div class="samples-hidden-warning alert alert-warning"> \
-            <span class="glyphicon glyphicon-info-sign"></span> \
-            <strong>Warning:</strong> '+hidden_samples+' samples hidden in toolbox. \
-            <a href="#mqc_hidesamples" class="alert-link" onclick="mqc_toolbox_openclose(\'#mqc_hidesamples\', true); return false;">See toolbox.</a>\
-        </div>');
-    }
-    if(num_samples == 0){ return; }
-    
-    // Convert the CSS percentage size into pixels
-    c_width = $('#fastqc_seq_heatmap').parent().width() - 5; // -5 for status bar
-    c_height = $('#fastqc_seq_heatmap').parent().height() - 2; // -2 for bottom line padding
-    s_height = c_height / num_samples;
-    // Resize the canvas properties
-    $('#fastqc_seq_heatmap').prop({
-        'width': c_width,
-        'height': c_height+1
-    });
-    var canvas = document.getElementById('fastqc_seq_heatmap');
-    if (canvas && canvas.getContext) {
-        var ctx = canvas.getContext('2d');
-        ctx.strokeStyle = '#666666';
-        // First, do labels and get max base pairs
-        max_bp = 0;
-        labels = [];
-        $.each(sample_names, function(idx, s_name){
-            var s = p_data[s_name];
-            labels.push(s_name);
-            $.each(s, function(bp, v){
-                bp = parseInt(bp);
-                if(bp > max_bp){
-                    max_bp = bp;
-                }
-            });
-        });
-        ypos = 0;
-        $.each(sample_names, function(idx, s_name){
-          
-            // Add a 5px wide bar indicating either status or Highlight
-            var status = sample_statuses[s_name];
-            var s_col = '#999999';
-            if(status == 'pass'){ s_col = '#5cb85c'; }
-            if(status == 'warn'){ s_col = '#f0ad4e'; }
-            if(status == 'fail'){ s_col = '#d9534f'; }
-            // Override status colour with highlights
-            $.each(window.mqc_highlight_f_texts, function(idx, f_text){
-                if((window.mqc_highlight_regex_mode && s_name.match(f_text)) || (!window.mqc_highlight_regex_mode && s_name.indexOf(f_text) > -1)){
-                  s_col = window.mqc_highlight_f_cols[idx];
-                }
-            });
-            ctx.fillStyle = s_col;
-            ctx.fillRect (0, ypos+1, 5, s_height-2);
-            
-            // Plot the squares for the heatmap
-            var s = p_data[s_name]
-            var xpos = 6;
-            var last_bp = 0;
-            $.each(s, function(bp, v){
-                bp = parseInt(bp);
-                var this_width = (bp - last_bp) * (c_width / max_bp);
-                last_bp = bp;
-                var r = (v['T'] / 100)*255;
-                var g = (v['A'] / 100)*255;
-                var b = (v['C'] / 100)*255;
-                ctx.fillStyle = chroma(r,g,b).css();
-                // width+1 to avoid vertical white line gaps.
-                ctx.fillRect (xpos, ypos, this_width+1, s_height);
-                xpos += this_width;
-            });
-            // Draw a line under this row
-            ctx.beginPath();
-            ctx.moveTo(6, ypos);
-            ctx.lineTo(c_width, ypos);
-            ctx.stroke();
-            ypos += s_height;
-        });
-        // Final line under row
-        ctx.beginPath();
-        ctx.moveTo(6, ypos);
-        ctx.lineTo(c_width, ypos);
-        ctx.stroke();
-    }
-}
-
-// Set up listeners etc on page load
-$(function () {
-
-    // Add the pass / warning / fails counts to each of the FastQC submodule headings
-    $.each(fastqc_passfails, function(k, vals){
-        var pid = '#fastqc_'+k;
-        var total = 0;
-        var v = { 'pass': 0, 'warn': 0, 'fail': 0 }
-        $.each(vals, function(s_name, status){
-          total += 1;
-          v[status] += 1;
-        });
-        var p_bar = '<div class="progress fastqc_passfail_progress"> \
-            <div class="progress-bar progress-bar-success" style="width: '+(v['pass']/total)*100+'%" title="'+v['pass']+'&nbsp;/&nbsp;'+total+' samples passed" data-toggle="tooltip">'+v['pass']+'</div> \
-            <div class="progress-bar progress-bar-warning" style="width: '+(v['warn']/total)*100+'%" title="'+v['warn']+'&nbsp;/&nbsp;'+total+' samples with warnings" data-toggle="tooltip">'+v['warn']+'</div> \
-            <div class="progress-bar progress-bar-danger" style="width: '+(v['fail']/total)*100+'%" title="'+v['fail']+'&nbsp;/&nbsp;'+total+' samples failed" data-toggle="tooltip">'+v['fail']+'</div> \
-        </div>';
-        $(pid).append(p_bar);
-        $(pid).tooltip({selector: '[data-toggle="tooltip"]' });
-    });
-    
-    /////////
-    /// SEQ CONTENT HEATMAP LISTENERS
-    /////////
-    
-    // Seq Content heatmap mouse rollover
-    $('#fastqc_seq_heatmap').mousemove(function(e) {
-        
-        // Replace the heading above the heatmap
-        var pos = findPos(this);
-        var x = e.pageX - pos.x;
-        var y = e.pageY - pos.y;
-        // Get label from y position
-        var idx = Math.floor(y/s_height);
-        var s_name = sample_names[idx];
-        if(s_name === undefined){ return false; }
-        var s_status = sample_statuses[s_name];
-        var s_status_class = 'label-default';
-        if(s_status == 'pass'){ s_status_class = 'label-success'; }
-        if(s_status == 'warn'){ s_status_class = 'label-warning'; }
-        if(s_status == 'fail'){ s_status_class = 'label-danger'; }
-        $('#fastqc_sequence_content_plot .s_name').html(s_name + ' <span class="label s_status '+s_status_class+'">'+s_status+'</span>');
-        
-        // Show the sequence base percentages on the bar plots below
-        // http://stackoverflow.com/questions/6735470/get-pixel-color-from-canvas-on-mouseover
-        var ctx = this.getContext('2d');
-        var p = ctx.getImageData(x, y, 1, 1).data;
-        var seq_t = (p[0]/255)*100;
-        var seq_a = (p[1]/255)*100;
-        var seq_c = (p[2]/255)*100;
-        var seq_g = 100 - (seq_t + seq_a + seq_c);
-        $('#fastqc_seq_heatmap_key_t span').text(seq_t.toFixed(0)+'%');
-        $('#fastqc_seq_heatmap_key_c span').text(seq_c.toFixed(0)+'%');
-        $('#fastqc_seq_heatmap_key_a span').text(seq_a.toFixed(0)+'%');
-        $('#fastqc_seq_heatmap_key_g span').text(seq_g.toFixed(0)+'%');
-        
-        // Get base pair position from x pos
-        var this_bp = Math.floor((x/c_width)*max_bp);
-        $('#fastqc_seq_heatmap_key_pos').text(this_bp+' bp');
-    });
-    
-    // Remove sample name again when mouse leaves
-    $('#fastqc_seq_heatmap').mouseout(function(e) {
-      $('#fastqc_sequence_content_plot .s_name').html('<em class="text-muted">rollover for sample name</em>');
-      $('#fastqc_seq_heatmap_key_pos').text('-');
-      $('#fastqc_seq_heatmap_key_t span').text('-');
-      $('#fastqc_seq_heatmap_key_c span').text('-');
-      $('#fastqc_seq_heatmap_key_a span').text('-');
-      $('#fastqc_seq_heatmap_key_g span').text('-');
-    });
-    
-    // Click sample
-    $('#fastqc_seq_heatmap').click(function(e) {
-      e.preventDefault();
-      // Get label from y position
-      var pos = findPos(this);
-      var x = e.pageX - pos.x;
-      var y = e.pageY - pos.y;
-      var idx = Math.floor(y/s_height);
-      var s_name = sample_names[idx];
-      if(s_name !== undefined){
-        plot_single_seqcontent(s_name);
-      }
-    });
-    $('#mqc-module-section-fastqc').on('click', '#fastqc_sequence_content_single_prev', function(e){
-        e.preventDefault();
-        var idx = sample_names.indexOf(current_single_plot) - 1;
-        if(idx < 0){ idx = sample_names.length - 1; }
-        plot_single_seqcontent(sample_names[idx]);
-    });
-    $('#mqc-module-section-fastqc').on('click', '#fastqc_sequence_content_single_next', function(e){
-        e.preventDefault();
-        var idx = sample_names.indexOf(current_single_plot) + 1;
-        if(idx == sample_names.length){ idx = 0; }
-        plot_single_seqcontent(sample_names[idx]);
-    });
-    $('#mqc-module-section-fastqc').on('click', '#fastqc_sequence_content_single_back', function(e){
-        e.preventDefault();
-        $('#fastqc_sequence_content_plot').slideDown();
-        $('#fastqc_sequence_content_single_wrapper').slideUp(function(){
-          $(this).remove();
-        });
-    });
-      
-    // Highlight the custom heatmap
-    $(document).on('mqc_highlights mqc_hidesamples mqc_renamesamples mqc_plotresize', function(e){
-        fastqc_seq_content_heatmap();
-    });
-    // Seq content - window resized
-    $(window).resize(function() {
-        fastqc_seq_content_heatmap();
-    });
-
-});
-
-function plot_single_seqcontent(s_name){
-  current_single_plot = s_name;
-  var data = fastqc_seq_content_data[s_name];
-  var plot_data = [
-    {'name': '% T', 'data':[]},
-    {'name': '% C', 'data':[]},
-    {'name': '% A', 'data':[]},
-    {'name': '% G', 'data':[]}
-  ];
-  for (var d in data){
-    var base = data[d]['base'].split('-');
-    base = parseFloat(base[0]);
-    plot_data[0]['data'].push([base, data[d]['T']]);
-    plot_data[1]['data'].push([base, data[d]['C']]);
-    plot_data[2]['data'].push([base, data[d]['A']]);
-    plot_data[3]['data'].push([base, data[d]['G']]);
-  }
-  
-  // Create plot div if it doesn't exist, and hide overview
-  if($('#fastqc_sequence_content_single_wrapper').length == 0) {
-    $('#fastqc_sequence_content_plot').slideUp();
-    var newplot = '<div id="fastqc_sequence_content_single_wrapper"> \
-    <div id="fastqc_sequence_content_single_controls"><div class="btn-group"> \
-      <button class="btn btn-default btn-sm" id="fastqc_sequence_content_single_prev">&laquo; Prev</button> \
-      <button class="btn btn-default btn-sm" id="fastqc_sequence_content_single_next">Next &raquo;</button> \
-    </div> <button class="btn btn-default btn-sm" id="fastqc_sequence_content_single_back">Back to overview heatmap</button></div>\
-    <div class="hc-plot-wrapper"><div id="fastqc_sequence_content_single" class="hc-plot hc-line-plot"><small>loading..</small></div></div></div>';
-    $(newplot).insertAfter('#fastqc_sequence_content_plot').hide().slideDown();      
-  }
-
-  $('#fastqc_sequence_content_single').highcharts({
-    chart: {
-      type: 'line',
-      zoomType: 'x'
-    },
-    colors: ['#dc0000', '#0000dc', '#00dc00', '#404040'],
-    title: {
-      text: 'Per Base Sequence Content: '+s_name,
-      x: 30 // fudge to center over plot area rather than whole plot
-    },
-    xAxis: {
-      title: { text: 'Position (bp)' },
-      allowDecimals: false,
-    },
-    yAxis: {
-      title: { text: '% Reads' },
-      max: 100,
-      min: 0,
-    },
-    legend: {
-      floating: true,
-      layout: 'vertical',
-      align: 'right',
-      verticalAlign: 'top',
-      y: 40
-    },
-    tooltip: {
-      backgroundColor: '#FFFFFF',
-      borderColor: '#CCCCCC',
-      formatter: function () {
-        var texts = [];
-        var bars = [];
-        $.each(this.points, function () {
-          texts.push('<span style="display: inline-block; border-left: 3px solid '+this.color+'; padding-left:5px; margin-bottom: 2px;"></div>' + this.y.toFixed(1) + this.series.name + '</span>');
-          bars.push('<div class="progress-bar" style="width:'+this.y+'%; float:left; font-size:8px; line-height:12px; padding:0; background-color:'+this.color+';">'+this.series.name.replace('%','').trim()+'</div>');
-        });
-        return'<p style="font-weight:bold; text-decoration: underline;">Position: ' + this.x + ' bp</p>\
-            <p>'+texts.join('<br>')+'</p><div class="progress" style="height: 12px; width: 150px; margin:0;">'+bars.join('')+'</div>';
-      },
-			useHTML: true,
-      crosshairs: true,
-      shared: true,
-    },
-    plotOptions: {
-      series: {
-        animation: false,
-        marker: { enabled: false },
-      }
-    },
-    series: plot_data
-  });
-}
-
-
-// Find the position of the mouse cursor over the canvas
-// http://stackoverflow.com/questions/6735470/get-pixel-color-from-canvas-on-mouseover
-function findPos(obj) {
-  var curleft = 0, curtop = 0;
-  if (obj.offsetParent) {
-    do {
-      curleft += obj.offsetLeft;
-      curtop += obj.offsetTop;
-    } while (obj = obj.offsetParent);
-    return { x: curleft, y: curtop };
-  }
-  return undefined;
-}</script>
   
 </head>
 <body>
@@ -3429,24 +3019,12 @@ function findPos(obj) {
     <ul class="mqc-nav collapse navbar-collapse">
       
       <li>
-        <a href="#fastqc" class="nav-l1">FastQC</a>
+        <a href="#bismark" class="nav-l1">Bismark</a>
         <ul>
         <li>
-            <a href="#fastqc_sequence_quality" class="nav-l2">Sequence Quality Histograms</a>
+            <a href="#bismark-alignment" class="nav-l2">Alignment Rates</a>
           </li><li>
-            <a href="#fastqc_per_seq_quality" class="nav-l2">Per Sequence Quality Scores</a>
-          </li><li>
-            <a href="#fastqc_sequence_content" class="nav-l2">Per Base Sequence Content</a>
-          </li><li>
-            <a href="#fastqc_gc_content" class="nav-l2">Per Sequence GC Content</a>
-          </li><li>
-            <a href="#fastqc_n_content" class="nav-l2">Per Base N Content</a>
-          </li><li>
-            <a href="#fastqc_seq_length_dist" class="nav-l2">Sequence Length Distribution</a>
-          </li><li>
-            <a href="#fastqc_seq_dup_levels" class="nav-l2">Sequence Duplication Levels</a>
-          </li><li>
-            <a href="#fastqc_adapter_content" class="nav-l2">Adapter Content</a>
+            <a href="#bismark-strands" class="nav-l2">Strand Alignment</a>
           </li>
         </ul>
       </li>
@@ -3618,7 +3196,7 @@ function findPos(obj) {
   </div>
   <a href="#top" class="mqc-toplink hidden-xs" title="Go to top"><span class="glyphicon glyphicon-chevron-up"></span></a>
 </div>
-<script type="text/javascript">var report_id = 'mqc_report_t6odemwrjg2y7h5z1bnq'; </script>
+<script type="text/javascript">var report_id = 'mqc_report_zpobs82x6clyfmta3djv'; </script>
 
 
 <div class="mainpage">
@@ -3636,8 +3214,8 @@ function findPos(obj) {
     analyses across many samples into a single report.</p>
 
 <div id="analysis_dirs_wrapper">
-  <p>Report generated on 2016-05-20, 10:05 based on data in:
-  <code class="mqc_analysis_path">/root/galaxy/database/jobs_directory/000/10/working/multiqc_WDir</code>  
+  <p>Report generated on 2016-05-23, 09:05 based on data in:
+  <code class="mqc_analysis_path">/root/galaxy/database/jobs_directory/000/104/working/multiqc_WDir</code>  
   
 </div>
 
@@ -3673,7 +3251,7 @@ function findPos(obj) {
         <div id="general_stats_table_container" class="mqc_table_container">
             <div class="table-responsive">
                 <table id="general_stats_table" class="table table-condensed mqc_table">
-        <thead><tr><th class="rowheader">Sample Name</th><th id="header_tsmv_percent_duplicates" class="chroma-col tsmv_percent_duplicates" data-chroma-scale="RdYlGn-rev" data-chroma-max="100.0" data-chroma-min="0.0" ><span data-toggle="tooltip" title="FastQC: % Duplicate Reads">% Dups</span></th><th id="header_ymgo_percent_gc" class="chroma-col ymgo_percent_gc" data-chroma-scale="PRGn" data-chroma-max="100.0" data-chroma-min="0.0" ><span data-toggle="tooltip" title="FastQC: Average % GC Content">% GC</span></th><th id="header_ubdm_avg_sequence_length" class="chroma-col ubdm_avg_sequence_length" data-chroma-scale="RdYlGn" data-chroma-max="101.0" data-chroma-min="0.0" ><span data-toggle="tooltip" title="FastQC: Average Sequence Length (bp)">Length</span></th><th id="header_huro_total_sequences" class="chroma-col huro_total_sequences" data-chroma-scale="Blues" data-chroma-max="0.314537" data-chroma-min="0.0"  data-shared-key=read_count><span data-toggle="tooltip" title="FastQC: Total Sequences (millions)">M Seqs</span></th></tr></thead><tbody><tr><th class="rowheader" data-original-sn="412_2">412_2</th><td class="data-coloured tsmv_percent_duplicates" ><div class="wrapper"><span class="bar" style="width:35.7657958955%;"></span><span class="val">35.8%</span></div></td><td class="data-coloured ymgo_percent_gc" ><div class="wrapper"><span class="bar" style="width:47.0%;"></span><span class="val">47%</span></div></td><td class="data-coloured ubdm_avg_sequence_length" ><div class="wrapper"><span class="bar" style="width:100.0%;"></span><span class="val">101</span></div></td><td class="data-coloured huro_total_sequences" ><div class="wrapper"><span class="bar" style="width:100.0%;"></span><span class="val">0.3</span></div></td></tr></tbody></table></div></div>
+        <thead><tr><th class="rowheader">Sample Name</th><th id="header_xuiw_aligned_reads" class="chroma-col xuiw_aligned_reads" data-chroma-scale="PuRd" data-chroma-max="0.220558" data-chroma-min="0.0"  data-shared-key=read_count><span data-toggle="tooltip" title="Bismark: Total Aligned Sequences (millions)">M Aligned</span></th><th id="header_fvkc_percent_aligned" class="chroma-col fvkc_percent_aligned" data-chroma-scale="YlGn" data-chroma-max="100.0" data-chroma-min="0.0" ><span data-toggle="tooltip" title="Bismark: Percent Aligned Sequences">% Aligned</span></th></tr></thead><tbody><tr><th class="rowheader" data-original-sn="Bismark Report_SE_report">Bismark Report_SE_report</th><td class="data-coloured xuiw_aligned_reads" ><div class="wrapper"><span class="bar" style="width:100.0%;"></span><span class="val">0.2</span></div></td><td class="data-coloured fvkc_percent_aligned" ><div class="wrapper"><span class="bar" style="width:69.7107999621%;"></span><span class="val">69.7%</span></div></td></tr></tbody></table></div></div>
     <!-- MultiQC Table Columns Modal -->
     <div class="modal fade" id="general_stats_table_configModal" tabindex="-1">
       <div class="modal-dialog modal-lg">
@@ -3697,45 +3275,25 @@ function findPos(obj) {
               </thead>
               <tbody>
                 
-            <tr class="tsmv_percent_duplicates" style="background-color: rgba(55,126,184, 0.15);">
+            <tr class="xuiw_aligned_reads" style="background-color: rgba(152,78,163, 0.15);">
               <td class="sorthandle ui-sortable-handle">||</span></td>
               <td style="text-align:center;">
-                <input class="mqc_table_col_visible" type="checkbox" checked="checked" value="tsmv_percent_duplicates" data-target="#general_stats_table">
+                <input class="mqc_table_col_visible" type="checkbox" checked="checked" value="xuiw_aligned_reads" data-target="#general_stats_table">
               </td>
-              <td>FastQC</td>
-              <td>% Dups</td>
-              <td>% Duplicate Reads</td>
-              <td></td>
-            </tr>
-            <tr class="ymgo_percent_gc" style="background-color: rgba(55,126,184, 0.15);">
-              <td class="sorthandle ui-sortable-handle">||</span></td>
-              <td style="text-align:center;">
-                <input class="mqc_table_col_visible" type="checkbox" checked="checked" value="ymgo_percent_gc" data-target="#general_stats_table">
-              </td>
-              <td>FastQC</td>
-              <td>% GC</td>
-              <td>Average % GC Content</td>
-              <td></td>
-            </tr>
-            <tr class="ubdm_avg_sequence_length" style="background-color: rgba(55,126,184, 0.15);">
-              <td class="sorthandle ui-sortable-handle">||</span></td>
-              <td style="text-align:center;">
-                <input class="mqc_table_col_visible" type="checkbox" checked="checked" value="ubdm_avg_sequence_length" data-target="#general_stats_table">
-              </td>
-              <td>FastQC</td>
-              <td>Length</td>
-              <td>Average Sequence Length (bp)</td>
-              <td></td>
-            </tr>
-            <tr class="huro_total_sequences" style="background-color: rgba(55,126,184, 0.15);">
-              <td class="sorthandle ui-sortable-handle">||</span></td>
-              <td style="text-align:center;">
-                <input class="mqc_table_col_visible" type="checkbox" checked="checked" value="huro_total_sequences" data-target="#general_stats_table">
-              </td>
-              <td>FastQC</td>
-              <td>M Seqs</td>
-              <td>Total Sequences (millions)</td>
+              <td>Bismark</td>
+              <td>M Aligned</td>
+              <td>Total Aligned Sequences (millions)</td>
               <td>read_count</td>
+            </tr>
+            <tr class="fvkc_percent_aligned" style="background-color: rgba(152,78,163, 0.15);">
+              <td class="sorthandle ui-sortable-handle">||</span></td>
+              <td style="text-align:center;">
+                <input class="mqc_table_col_visible" type="checkbox" checked="checked" value="fvkc_percent_aligned" data-target="#general_stats_table">
+              </td>
+              <td>Bismark</td>
+              <td>% Aligned</td>
+              <td>Percent Aligned Sequences</td>
+              <td></td>
             </tr>
               </tbody>
             </table>
@@ -3748,114 +3306,43 @@ function findPos(obj) {
   
 
 
-<div id="mqc-module-section-fastqc" class="mqc-module-section">
-  <h2 id="fastqc">FastQC</h2>
-  <p><a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/" target="_blank">FastQC</a> is a quality control tool for high throughput sequence data, written by Simon Andrews at the Babraham Institute in Cambridge.</p><script type="text/javascript">fastqc_passfails = {"seq_length_dist": {"412_2": "pass"}, "sequence_quality": {"412_2": "pass"}, "adapter_content": {"412_2": "pass"}, "seq_dup_levels": {"412_2": "warn"}, "n_content": {"412_2": "pass"}, "sequence_content": {"412_2": "fail"}, "gc_content": {"412_2": "pass"}, "per_seq_quality": {"412_2": "warn"}};</script>
+<div id="mqc-module-section-bismark" class="mqc-module-section">
+  <h2 id="bismark">Bismark</h2>
+  <p><a href="http://www.bioinformatics.babraham.ac.uk/projects/bismark/" target="_blank">Bismark</a> is a tool to map bisulfite converted sequence reads and determine cytosine methylation states.</p>
   
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_sequence_quality">Sequence Quality Histograms</h3>
-      <p>The mean quality value across each base position in the read. See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/2%20Per%20Base%20Sequence%20Quality.html" target="_bkank">FastQC help</a>.</p><div class="mqc_hcplot_plotgroup"><div class="hc-plot-wrapper"><div id="fastqc_sequence_quality_plot" class="hc-plot not_rendered hc-line-plot"><small>loading..</small></div></div></div> 
-<script type="text/javascript"> 
-        mqc_plots["fastqc_sequence_quality_plot"] = { 
-            "plot_type": "xy_line", 
-            "datasets": [[{"color": "#5cb85c", "data": [[1, 26.00092516937594], [2, 26.00128124831101], [3, 26.001719988427435], [4, 26.001650044350903], [5, 26.001901207171176], [6, 26.001799470332585], [7, 26.001293965415833], [8, 26.001576920998165], [9, 26.00126535192998], [10, 26.001475184159574], [12, 26.001381395511498], [14, 26.00158486918868], [16, 26.001828083818438], [18, 26.00209514301974], [20, 26.002357433306734], [22, 26.002635619974754], [24, 26.003136355977198], [26, 26.003614837046197], [28, 26.002629261422346], [30, 26.003136355977198], [32, 26.00379605578994], [34, 26.00375949411357], [36, 26.0038818962475], [38, 26.003932764666796], [40, 26.00407901137227], [42, 26.004427142116825], [44, 26.00511545541542], [46, 26.00514724817748], [48, 26.005477892902903], [50, 26.00689108117646], [52, 26.00700394548177], [54, 26.00542861412171], [56, 26.007851222590666], [58, 26.007181984949305], [60, 26.00899258274861], [62, 26.01146446999876], [64, 26.0110607019206], [66, 26.012860172253184], [68, 26.015072948492545], [70, 26.017894556125356], [72, 26.021148545322173], [74, 26.031485961905915], [76, 26.038507393406817], [78, 26.032964325341695], [80, 26.05200024162499], [82, 26.043074423676707], [84, 26.051189526192466], [86, 26.059954790692352], [88, 26.072395298486345], [90, 26.086764037299268], [92, 26.101854471810945], [94, 26.065443811061975], [96, 26.012505682956217], [98, 25.84462877181381], [100, 26.11813236598556]], "name": "412_2"}]], 
-            "config": {"xlab": "Position (bp)", "colors": {"412_2": "#5cb85c"}, "tt_label": "<b>Base {point.x}</b>: {point.y:.2f}", "xDecimals": false, "title": "Mean Quality Scores", "ylab": "Phred Score", "ymin": 0, "id": "fastqc_sequence_quality_plot", "yPlotBands": [{"color": "#c3e6c3", "to": 100, "from": 28}, {"color": "#e6dcc3", "to": 28, "from": 20}, {"color": "#e6c3c3", "to": 20, "from": 0}]} 
+    <div class="mqc-section mqc-section-bismark">
+      <h3 id="bismark-alignment">Alignment Rates</h3>
+      <div class="mqc_hcplot_plotgroup"><div class="btn-group hc_switch_group"> 
+<button class="btn btn-default btn-sm active" data-action="set_numbers" data-target="bismark_alignment" data-ylab="Number of Reads">Number of Reads</button> 
+<button class="btn btn-default btn-sm " data-action="set_percent" data-target="bismark_alignment" data-ylab="Percentages">Percentages</button> 
+</div> <div class="hc-plot-wrapper"><div id="bismark_alignment" class="hc-plot not_rendered hc-bar-plot"><small>loading..</small></div></div> 
+    </div> 
+    <script type="text/javascript"> 
+        mqc_plots["bismark_alignment"] = { 
+            "plot_type": "bar_graph", 
+            "samples": [["Bismark Report_SE_report"]], 
+            "datasets": [[{"color": "#2f7ed8", "data": [220558.0], "name": "Aligned Uniquely"}, {"color": "#492970", "data": [1904.0], "name": "Aligned Ambiguously"}, {"color": "#0d233a", "data": [93928.0], "name": "Did Not Align"}]], 
+            "config": {"ylab": "# Reads", "cpswitch_counts_label": "Number of Reads", "id": "bismark_alignment", "title": "Bismark Alignment Scores"} 
         } 
     </script>
       <hr>
     </div>
 
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_per_seq_quality">Per Sequence Quality Scores</h3>
-      <p>The number of reads with average quality scores. Shows if a subset of reads has poor quality. See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/3%20Per%20Sequence%20Quality%20Scores.html" target="_bkank">FastQC help</a>.</p><div class="mqc_hcplot_plotgroup"><div class="hc-plot-wrapper"><div id="fastqc_per_seq_quality_plot" class="hc-plot not_rendered hc-line-plot"><small>loading..</small></div></div></div> 
-<script type="text/javascript"> 
-        mqc_plots["fastqc_per_seq_quality_plot"] = { 
-            "plot_type": "xy_line", 
-            "datasets": [[{"color": "#f0ad4e", "data": [[25.0, 17858.0], [26.0, 296674.0], [27.0, 5.0]], "name": "412_2"}]], 
-            "config": {"xlab": "Mean Sequence Quality (Phred Score)", "colors": {"412_2": "#f0ad4e"}, "tt_label": "<b>Phred {point.x}</b>: {point.y} reads", "xDecimals": false, "title": "Per Sequence Quality Scores", "xmin": 0, "ylab": "Count", "ymin": 0, "xPlotBands": [{"color": "#c3e6c3", "to": 100, "from": 28}, {"color": "#e6dcc3", "to": 28, "from": 20}, {"color": "#e6c3c3", "to": 20, "from": 0}], "id": "fastqc_per_seq_quality_plot"} 
+    <div class="mqc-section mqc-section-bismark">
+      <h3 id="bismark-strands">Strand Alignment</h3>
+      <div class="mqc_hcplot_plotgroup"><div class="btn-group hc_switch_group"> 
+<button class="btn btn-default btn-sm " data-action="set_numbers" data-target="bismark_strand_alignment" data-ylab="Number of Reads">Number of Reads</button> 
+<button class="btn btn-default btn-sm active" data-action="set_percent" data-target="bismark_strand_alignment" data-ylab="Percentages">Percentages</button> 
+</div> <div class="hc-plot-wrapper"><div id="bismark_strand_alignment" class="hc-plot not_rendered hc-bar-plot"><small>loading..</small></div></div> 
+    </div> 
+    <script type="text/javascript"> 
+        mqc_plots["bismark_strand_alignment"] = { 
+            "plot_type": "bar_graph", 
+            "samples": [["Bismark Report_SE_report"]], 
+            "datasets": [[{"data": [112206.0], "name": "Original bottom strand"}, {"data": [108352.0], "name": "Original top strand"}]], 
+            "config": {"cpswitch_counts_label": "Number of Reads", "title": "Alignment to Individual Bisulfite Strands", "stacking": "percent", "cpswitch_c_active": false, "ylab": "% Reads", "id": "bismark_strand_alignment"} 
         } 
     </script>
-      <hr>
-    </div>
-
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_sequence_content">Per Base Sequence Content</h3>
-      <p>The proportion of each base position for which each of the four normal DNA bases has been called.                     See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/4%20Per%20Base%20Sequence%20Content.html" target="_bkank">FastQC help</a>.</p>                  <p class="text-primary"><span class="glyphicon glyphicon-info-sign"></span> Click a heatmap row to see a line plot for that dataset.</p><div id="fastqc_sequence_content_plot"> 
-            <h5><span class="s_name"><em class="text-muted">rollover for sample name</em></span></h5> 
-            <div class="fastqc_seq_heatmap_key">
-                Position: <span id="fastqc_seq_heatmap_key_pos">-</span>
-                <div><span id="fastqc_seq_heatmap_key_t"> %T: <span>-</span></span></div>
-                <div><span id="fastqc_seq_heatmap_key_c"> %C: <span>-</span></span></div>
-                <div><span id="fastqc_seq_heatmap_key_a"> %A: <span>-</span></span></div>
-                <div><span id="fastqc_seq_heatmap_key_g"> %G: <span>-</span></span></div>
-            </div>
-            <div id="fastqc_seq_heatmap_div" class="fastqc-overlay-plot">
-                <div id="fastqc_seq" class="hc-plot"> 
-                    <canvas id="fastqc_seq_heatmap" height="100%" width="800px" style="width:100%;"></canvas> 
-                </div> 
-            </div> 
-            <div class="clearfix"></div> 
-        </div> 
-        <script type="text/javascript"> 
-            fastqc_seq_content_data = {"412_2": {"1": {"A": 13.112924356707667, "C": 51.31711163967998, "base": "1", "T": 11.532517584807744, "G": 24.037446418804613}, "2": {"A": 21.899808289644778, "C": 19.232395552828443, "base": "2", "T": 41.29402900135755, "G": 17.573767156169225}, "3": {"A": 23.32451611262304, "C": 27.137752117404684, "base": "3", "T": 25.392641859755322, "G": 24.145089910216953}, "4": {"A": 30.606574107338723, "C": 24.61141296572422, "base": "4", "T": 20.562604717410036, "G": 24.219408209527018}, "5": {"A": 31.36531130674755, "C": 19.696434986916948, "base": "5", "T": 22.806164137488118, "G": 26.132089568847388}, "6": {"A": 33.18751053135243, "C": 21.560579518466827, "base": "6", "T": 24.231807386730335, "G": 21.020102563450404}, "7": {"A": 18.061468126166396, "C": 23.510111687973115, "base": "7", "T": 39.188394370137694, "G": 19.24002581572279}, "8": {"A": 21.938277531737125, "C": 27.63681220333379, "base": "8", "T": 30.014910805406043, "G": 20.409999459523046}, "9": {"A": 20.83188941205645, "C": 26.266544158556865, "base": "9", "T": 32.289365003163375, "G": 20.612201426223304}, "10": {"A": 29.863100366570546, "C": 23.331913256627995, "base": "10-11", "T": 22.406584916877822, "G": 24.398401459923633}, "12": {"A": 24.632237224873386, "C": 24.849699717362345, "base": "12-13", "T": 28.259950339705664, "G": 22.258112718058605}, "14": {"A": 25.738625344554062, "C": 23.914992512804535, "base": "14-15", "T": 27.32730966468174, "G": 23.019072477959668}, "16": {"A": 26.072774095092754, "C": 24.061869108366317, "base": "16-17", "T": 26.065938607786098, "G": 23.799418188754828}, "18": {"A": 26.145254771298767, "C": 24.186661664605435, "base": "18-19", "T": 26.142075495092786, "G": 23.52600806900301}, "20": {"A": 26.474150894807284, "C": 23.840756413394924, "base": "20-21", "T": 26.348251557050524, "G": 23.336841134747264}, "22": {"A": 26.64466572558595, "C": 23.774051606831737, "base": "22-23", "T": 26.149644551269823, "G": 23.431638116312488}, "24": {"A": 26.647580411843443, "C": 23.610099924651156, "base": "24-25", "T": 26.3967355191917, "G": 23.345584144313705}, "26": {"A": 26.68983310309965, "C": 23.523894759097143, "base": "26-27", "T": 26.50336766438129, "G": 23.28290447342192}, "28": {"A": 26.425666932666108, "C": 23.98954653983474, "base": "28-29", "T": 26.391012822020937, "G": 23.19377370547821}, "30": {"A": 26.360014879012645, "C": 23.853314554408545, "base": "30-31", "T": 26.45602902043321, "G": 23.330641546145607}, "32": {"A": 26.652826217583304, "C": 23.601674842705307, "base": "32-33", "T": 26.429323100302987, "G": 23.3161758394084}, "34": {"A": 26.49831339397273, "C": 23.78845731980657, "base": "34-35", "T": 26.226485278361526, "G": 23.48674400785917}, "36": {"A": 26.36255829997743, "C": 24.011483545655995, "base": "36-37", "T": 26.371142345733574, "G": 23.254815808633005}, "38": {"A": 26.367168250476098, "C": 23.540632739550514, "base": "38-39", "T": 26.650282796618523, "G": 23.44191621335487}, "40": {"A": 26.447444974677065, "C": 23.798631003665704, "base": "40-41", "T": 26.40182236112127, "G": 23.35210166053596}, "42": {"A": 26.48639110820031, "C": 23.829946874294595, "base": "42-43", "T": 26.50562572924648, "G": 23.178036288258618}, "44": {"A": 26.808133860245377, "C": 23.47323208398376, "base": "44-45", "T": 26.557924822834835, "G": 23.160709232936032}, "46": {"A": 26.575728769588313, "C": 23.789729030288964, "base": "46-47", "T": 26.361286589495037, "G": 23.273255610627686}, "48": {"A": 26.396258627760805, "C": 23.90974670706467, "base": "48-49", "T": 26.513255992140827, "G": 23.180738673033694}, "50": {"A": 26.65075968804942, "C": 23.590229448363786, "base": "50-51", "T": 26.494816190146153, "G": 23.264194673440645}, "52": {"A": 26.71879619885737, "C": 23.757936268229173, "base": "52-53", "T": 26.22044465357017, "G": 23.30282287934329}, "54": {"A": 26.375434368611643, "C": 23.715492930879357, "base": "54-55", "T": 26.524542422672052, "G": 23.384530277836948}, "56": {"A": 26.42423625837342, "C": 23.421727809446903, "base": "56-57", "T": 26.697971939708204, "G": 23.456063992471474}, "58": {"A": 26.584312815344457, "C": 23.514244747040888, "base": "58-59", "T": 26.454916273761114, "G": 23.446526163853537}, "60": {"A": 26.463659283327555, "C": 23.749352222473032, "base": "60-61", "T": 26.43774818224883, "G": 23.34924031195058}, "62": {"A": 26.604501219252423, "C": 23.24496005239447, "base": "62-63", "T": 26.695428518743427, "G": 23.455110209609682}, "64": {"A": 26.67365047673247, "C": 23.839166775291936, "base": "64-65", "T": 26.21869605165688, "G": 23.268486696318718}, "66": {"A": 26.519614544552788, "C": 23.972696375943052, "base": "66-67", "T": 26.501333706368406, "G": 23.00635537313575}, "68": {"A": 26.715616922651392, "C": 23.525213249951516, "base": "68-69", "T": 26.472561256704296, "G": 23.286608570692795}, "70": {"A": 26.746455901849387, "C": 23.65254326200097, "base": "70-71", "T": 26.38846940105616, "G": 23.212531435093485}, "72": {"A": 26.594009607772694, "C": 23.761433472055753, "base": "72-73", "T": 26.572390529572036, "G": 23.072166390599516}, "74": {"A": 26.653938964255396, "C": 23.40360593507282, "base": "74-75", "T": 26.601162979236147, "G": 23.341292121435632}, "76": {"A": 26.58860483822253, "C": 23.6937148888684, "base": "76-77", "T": 26.42836931744119, "G": 23.28931095546788}, "78": {"A": 26.72785713604441, "C": 23.47879581734422, "base": "78-79", "T": 26.464930993809947, "G": 23.32841605280142}, "80": {"A": 26.649329013756727, "C": 23.40058562267714, "base": "80-81", "T": 26.700038469242095, "G": 23.25004689432404}, "82": {"A": 26.412790864031894, "C": 23.5729023930412, "base": "82-83", "T": 26.557765859024535, "G": 23.45654088390237}, "84": {"A": 26.4868679996312, "C": 23.772084047345782, "base": "84-85", "T": 26.550612487561082, "G": 23.190435465461935}, "86": {"A": 26.680485920575318, "C": 23.422522628498395, "base": "86-87", "T": 26.68080384819592, "G": 23.21618760273036}, "88": {"A": 26.675717006266353, "C": 23.36004985105091, "base": "88-89", "T": 26.419308380254154, "G": 23.544924762428586}, "90": {"A": 26.548386994216898, "C": 23.56670280443954, "base": "90-91", "T": 26.219808798328977, "G": 23.665101403014592}, "92": {"A": 26.85216683569818, "C": 23.185348623532366, "base": "92-93", "T": 26.548545958027198, "G": 23.41393858274225}, "94": {"A": 26.524626751786755, "C": 23.58569448330239, "base": "94-95", "T": 26.163141897906755, "G": 23.726536867004093}, "96": {"A": 26.55522243805975, "C": 23.473708975414656, "base": "96-97", "T": 26.25446290897414, "G": 23.71660567755145}, "98": {"A": 26.539485020840154, "C": 23.445254453371145, "base": "98-99", "T": 26.341575077017964, "G": 23.673685448770733}, "100": {"A": 26.349213918959734, "C": 23.58386189136344, "base": "100-101", "T": 25.944171554834917, "G": 24.12275263484191}}};
-            $(function () { fastqc_seq_content_heatmap(); }); 
-        </script>
-      <hr>
-    </div>
-
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_gc_content">Per Sequence GC Content</h3>
-      <p>The average GC content of reads. Normal random library typically have a roughly normal distribution of GC content. See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/5%20Per%20Sequence%20GC%20Content.html" target="_bkank">FastQC help</a>.</p><div class="mqc_hcplot_plotgroup"><div class="btn-group hc_switch_group">
-<button class="btn btn-default btn-sm active" data-action="set_data" data-ylab="Count"  data-newdata="0" data-target="fastqc_gc_content_plot">Counts</button>
-<button class="btn btn-default btn-sm " data-action="set_data" data-ylab="Percentage"  data-newdata="1" data-target="fastqc_gc_content_plot">Percentages</button>
-</div>
-
-<div class="hc-plot-wrapper"><div id="fastqc_gc_content_plot" class="hc-plot not_rendered hc-line-plot"><small>loading..</small></div></div></div> 
-<script type="text/javascript"> 
-        mqc_plots["fastqc_gc_content_plot"] = { 
-            "plot_type": "xy_line", 
-            "datasets": [[{"color": "#5cb85c", "data": [[0, 0.0], [1, 0.0], [2, 0.0], [3, 0.0], [4, 0.0], [5, 0.0], [6, 0.0], [7, 0.0], [8, 0.0], [9, 0.0], [10, 0.0], [11, 0.0], [12, 0.0], [13, 0.0], [14, 0.0], [15, 2.5], [16, 7.5], [17, 10.0], [18, 12.5], [19, 24.5], [20, 47.0], [21, 73.0], [22, 113.0], [23, 189.0], [24, 321.0], [25, 450.5], [26, 648.0], [27, 861.0], [28, 1201.0], [29, 1731.0], [30, 2269.0], [31, 2654.5], [32, 3024.5], [33, 3438.5], [34, 3921.0], [35, 4667.5], [36, 5522.5], [37, 6418.0], [38, 7505.5], [39, 8393.5], [40, 9436.5], [41, 10895.0], [42, 11760.5], [43, 12553.0], [44, 13467.0], [45, 13717.5], [46, 13634.5], [47, 14170.0], [48, 15237.0], [49, 14968.0], [50, 13877.5], [51, 13326.0], [52, 12464.0], [53, 11755.0], [54, 11330.5], [55, 10483.0], [56, 9575.0], [57, 8658.0], [58, 7375.5], [59, 6131.0], [60, 5205.0], [61, 4307.5], [62, 3646.0], [63, 2994.5], [64, 2228.5], [65, 1725.0], [66, 1367.5], [67, 1115.5], [68, 975.0], [69, 867.0], [70, 643.0], [71, 386.0], [72, 258.0], [73, 174.0], [74, 118.0], [75, 83.0], [76, 46.5], [77, 26.5], [78, 16.0], [79, 8.0], [80, 7.5], [81, 8.5], [82, 5.0], [83, 2.0], [84, 2.0], [85, 1.0], [86, 0.0], [87, 0.0], [88, 0.0], [89, 0.0], [90, 0.0], [91, 0.0], [92, 0.0], [93, 0.0], [94, 0.0], [95, 0.0], [96, 0.0], [97, 0.0], [98, 0.0], [99, 0.0], [100, 0.0]], "name": "412_2"}], [{"color": "#5cb85c", "data": [[0, 0.0], [1, 0.0], [2, 0.0], [3, 0.0], [4, 0.0], [5, 0.0], [6, 0.0], [7, 0.0], [8, 0.0], [9, 0.0], [10, 0.0], [11, 0.0], [12, 0.0], [13, 0.0], [14, 0.0], [15, 0.0007948190514947367], [16, 0.00238445715448421], [17, 0.003179276205978947], [18, 0.003974095257473684], [19, 0.00778922670464842], [20, 0.01494259816810105], [21, 0.02320871630364631], [22, 0.0359258211275621], [23, 0.060088320293002095], [24, 0.10205476621192419], [25, 0.14322639307935156], [26, 0.20601709814743577], [27, 0.2737356813347873], [28, 0.3818310723380715], [29, 0.5503327112549558], [30, 0.721377771136623], [31, 0.8439388688771113], [32, 0.9615720884983324], [33, 1.0931941234258609], [34, 1.246594200364345], [35, 1.4839271691406735], [36, 1.7557552847518734], [37, 2.0404594689972884], [38, 2.3862057563974983], [39, 2.6685254834884287], [40, 3.0001239917720333], [41, 3.4638214264140625], [42, 3.7389877820415403], [43, 3.990945421365372], [44, 4.2815312665918475], [45, 4.36117213555162], [46, 4.334784143041995], [47, 4.505034383872167], [48, 4.844263155050122], [49, 4.758740625109287], [50, 4.412040554847284], [51, 4.2367034720875445], [52, 3.9626498631321594], [53, 3.7372391801282516], [54, 3.6022789051844457], [55, 3.33283524672773], [56, 3.0441569672248416], [57, 2.752617339136572], [58, 2.344875165719772], [59, 1.9492142418856921], [60, 1.6548132652120418], [61, 1.3694732257254312], [62, 1.159164104699924], [63, 0.9520342598803957], [64, 0.7085017025024083], [65, 0.5484251455313683], [66, 0.43476602116762103], [67, 0.35464826077695155], [68, 0.3099794300829473], [69, 0.2756432470583747], [70, 0.20442746004444629], [71, 0.12272006155078735], [72, 0.08202532611425682], [73, 0.05531940598403367], [74, 0.03751545923055157], [75, 0.02638799250962526], [76, 0.014783634357802103], [77, 0.00842508194584421], [78, 0.0050868419295663145], [79, 0.0025434209647831572], [80, 0.00238445715448421], [81, 0.002702384775082105], [82, 0.0015896381029894735], [83, 0.0006358552411957893], [84, 0.0006358552411957893], [85, 0.00031792762059789465], [86, 0.0], [87, 0.0], [88, 0.0], [89, 0.0], [90, 0.0], [91, 0.0], [92, 0.0], [93, 0.0], [94, 0.0], [95, 0.0], [96, 0.0], [97, 0.0], [98, 0.0], [99, 0.0], [100, 0.0]], "name": "412_2"}]], 
-            "config": {"yDecimals": false, "colors": {"412_2": "#5cb85c"}, "data_labels": [{"ylab": "Count", "name": "Counts"}, {"ylab": "Percentage", "name": "Percentages"}], "xmin": 0, "ymin": 0, "id": "fastqc_gc_content_plot", "xlab": "%GC", "title": "Per Sequence GC Content", "xmax": 100, "tt_label": "<b>{point.x}% GC</b>: {point.y}", "ylab": "Count"} 
-        } 
-    </script>
-      <hr>
-    </div>
-
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_n_content">Per Base N Content</h3>
-      <p>The percentage of base calls at each position for which an N was called. See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/6%20Per%20Base%20N%20Content.html" target="_bkank">FastQC help</a>.</p><div class="mqc_hcplot_plotgroup"><div class="hc-plot-wrapper"><div id="fastqc_n_content_plot" class="hc-plot not_rendered hc-line-plot"><small>loading..</small></div></div></div> 
-<script type="text/javascript"> 
-        mqc_plots["fastqc_n_content_plot"] = { 
-            "plot_type": "xy_line", 
-            "datasets": [[{"color": "#5cb85c", "data": [[1.0, 0.019393584856471576], [2.0, 0.0], [3.0, 0.00031792762059789465], [4.0, 0.0], [5.0, 0.0025434209647831572], [6.0, 0.0], [7.0, 0.0], [8.0, 0.0], [9.0, 0.0]], "name": "412_2"}]], 
-            "config": {"colors": {"412_2": "#5cb85c"}, "xmin": 0, "ymin": 0, "id": "fastqc_n_content_plot", "xlab": "Position in Read (bp)", "yCeiling": 100, "title": "Per Base N Content", "yPlotBands": [{"color": "#e6c3c3", "to": 100, "from": 20}, {"color": "#e6dcc3", "to": 20, "from": 5}, {"color": "#c3e6c3", "to": 5, "from": 0}], "yMinRange": 5, "xDecimals": false, "tt_label": "<b>Base {point.x}</b>: {point.y:.2f}%", "ylab": "Percentage N-Count"} 
-        } 
-    </script>
-      <hr>
-    </div>
-
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_seq_length_dist">Sequence Length Distribution</h3>
-      <p>All samples have sequences of exactly 101 bp in length.</p>
-      <hr>
-    </div>
-
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_seq_dup_levels">Sequence Duplication Levels</h3>
-      <p>The relative level of duplication found for every sequence. See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/8%20Duplicate%20Sequences.html" target="_bkank">FastQC help</a>.</p><div class="mqc_hcplot_plotgroup"><div class="hc-plot-wrapper"><div id="fastqc_seq_dup_levels_plot" class="hc-plot not_rendered hc-line-plot"><small>loading..</small></div></div></div> 
-<script type="text/javascript"> 
-        mqc_plots["fastqc_seq_dup_levels_plot"] = { 
-            "plot_type": "xy_line", 
-            "datasets": [[{"color": "#f0ad4e", "data": [52.569776765044004, 12.68756607742752, 6.308625719870264, 3.7603065352921816, 2.6324145297055033, 1.9600594728368312, 1.6752548551775475, 1.4751691398359845, 1.108251692342203, 15.61495948461667, 0.2076157278512799, 0.0, 0.0, 0.0, 0.0, 0.0], "name": "412_2"}]], 
-            "config": {"xlab": "Sequence Duplication Level", "colors": {"412_2": "#f0ad4e"}, "tt_label": "<b>{point.x}</b>: {point.y:.1f}%", "ymax": 100, "title": "Sequence Duplication Levels", "ylab": "% of Library", "ymin": 0, "id": "fastqc_seq_dup_levels_plot", "categories": ["1", "2", "3", "4", "5", "6", "7", "8", "9", ">10", ">50", ">100", ">500", ">1k", ">5k", ">10k+"], "yMinTickInterval": 0.1} 
-        } 
-    </script>
-      <hr>
-    </div>
-
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_adapter_content">Adapter Content</h3>
-      <p>The cumulative percentage count of the proportion of your library which has seen each of the adapter sequences at each position. See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/10%20Adapter%20Content.html" target="_bkank">FastQC help</a>. Only samples with &ge; 0.1% adapter contamination are shown.</p><div class="alert alert-warning">No samples found with any adapter contamination > 0.1%</div>
       
     </div>
 

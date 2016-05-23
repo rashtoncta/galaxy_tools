@@ -70,16 +70,14 @@
         <repeat name="results" title="Results" min="1">
                 <param name="software" type="select" label="Software name">
                      <option value="fastqc">FastQC (RawData file)</option>
-					 <option value="cutadapt">Cutadapt (Report file)</option>
+                     <option value="cutadapt">Cutadapt (Report file)</option>
                      <option value="tophat">Tophat2 (align_summary file)</option>
-					 <option value="featurecounts">FeatureCounts (Summary file)</option>
+                     <option value="featurecounts">FeatureCounts (Summary file)</option>
                      <option value="samtools_stats">Samtools Stats (Stats file)</option>
                      <option value="picard">Picard (MarkDuplicates metrics file, CollectGTBiasMetrics Summary data file, CollectInsertSizeMetrics file)</option>
                      <option value="bismark">Bismark (Report file)</option>
-                     <!--options from_data_table="multiqc_indexes">
-                           <filter type="sort_by" column="1" />
-                           <validator type="no_options" message="No indexes are available" />
-                      </options-->
+                     <!--option value="bowtie2">Bowtie2</option>
+                     <option value="snpeff">SnpEff</option-->
                 </param>
                 <param name="input_file" type="data" format="txt, tabular" multiple="true" label="Result file" />
         </repeat>
@@ -94,10 +92,101 @@
             <param name="software" value="fastqc" />
             <param name="input_file" value="fastqc_data.txt" />
          </repeat>
-         <output name="html_file" file="report.html" compare="sim_size" delta="1000"/>
-         <output name="text_file" file="log.txt" compare="sim_size" delta="1000"/>     
+         <output name="html_file" file="report_fastqc.html" compare="sim_size" delta="1000"/>
+         <output name="text_file" file="log_fastqc.txt" compare="sim_size" delta="1000"/>     
+       </test>
+       <test>
+         <repeat name="results">
+            <param name="software" value="fastqc" />
+            <param name="input_file" value="fastqc_data.txt,fastqc_data_2.txt" />
+         </repeat>
+         <output name="html_file" file="report_fastqc_2.html" compare="sim_size" delta="1000"/>
+         <output name="text_file" file="log_fastqc_2.txt" compare="sim_size" delta="1000"/>
+      </test>
+      <test>
+         <repeat name="results">
+            <param name="software" value="cutadapt" />
+            <param name="input_file" value="cutadapt.txt" />
+         </repeat>
+         <output name="html_file" file="report_cutadapt.html" compare="sim_size" delta="1000"/>
+         <output name="text_file" file="log_cutadapt.txt" compare="sim_size" delta="1000"/>
+       </test>
+      <test>
+         <repeat name="results">
+            <param name="software" value="tophat" />
+            <param name="input_file" value="tophat_data.txt" />
+         </repeat>
+         <output name="html_file" file="report_tophat.html" compare="sim_size" delta="1000"/>
+         <output name="text_file" file="log_tophat.txt" compare="sim_size" delta="1000"/>
+       </test>
+       <test>
+         <repeat name="results">
+            <param name="software" value="featurecounts" />
+            <param name="input_file" value="featurecounts_data.txt" />
+         </repeat>
+         <output name="html_file" file="report_featurecounts.html" compare="sim_size" delta="1000"/>
+         <output name="text_file" file="log_featurecounts.txt" compare="sim_size" delta="1000"/>
+       </test>
+       <test>
+         <repeat name="results">
+            <param name="software" value="picard" />
+            <param name="input_file" value="collectGcBias_data.txt,CollectInsertSizeMetrics.txt,MarkDuplicates_data.txt" />
+         </repeat>
+         <output name="html_file" file="report_picard.html" compare="sim_size" delta="1000"/>
+         <output name="text_file" file="log_picard.txt" compare="sim_size" delta="1000"/>
+       </test>
+       <test>
+         <repeat name="results">
+            <param name="software" value="bismark" />
+            <param name="input_file" value="bismark_data.txt" />
+         </repeat>
+         <output name="html_file" file="report_bismark.html" compare="sim_size" delta="1000"/>
+         <output name="text_file" file="log_bismark.txt" compare="sim_size" delta="1000"/>
+       </test>
+       <test>
+         <repeat name="results">
+            <param name="software" value="samtools_stats" />
+            <param name="input_file" value="samtools_data.txt" />
+         </repeat>
+         <output name="html_file" file="report_samtools.html" compare="sim_size" delta="1000"/>
+         <output name="text_file" file="log_samtools.txt" compare="sim_size" delta="1000"/>
+       </test>
+    <test>
+        <repeat name="results">
+            <param name="software" value="fastqc" />
+            <param name="input_file" value="fastqc_data.txt,fastqc_data_2.txt" />
+         </repeat>
+         <repeat name="results">
+            <param name="software" value="cutadapt" />
+            <param name="input_file" value="cutadapt.txt" />
+         </repeat>
+         <repeat name="results">
+            <param name="software" value="tophat" />
+            <param name="input_file" value="tophat_data.txt" />
+         </repeat>
+         <repeat name="results">
+            <param name="software" value="featurecounts" />
+            <param name="input_file" value="featurecounts_data.txt" />
+         </repeat>
+         <repeat name="results">
+            <param name="software" value="picard" />
+            <param name="input_file" value="collectGcBias_data.txt,CollectInsertSizeMetrics.txt,MarkDuplicates_data.txt" />
+         </repeat>
+         <repeat name="results">
+            <param name="software" value="bismark" />
+            <param name="input_file" value="bismark_data.txt" />
+         </repeat>
+         <repeat name="results">
+            <param name="software" value="samtools_stats" />
+            <param name="input_file" value="samtools_data.txt" />
+         </repeat>
+
+         <output name="html_file" file="report_all.html" compare="sim_size" delta="3000"/>
+         <output name="text_file" file="log_all.txt" compare="sim_size" delta="3000"/>
        </test>
     </tests>
+
+
     <help>
 **What it does**
 
