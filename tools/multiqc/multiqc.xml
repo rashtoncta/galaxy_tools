@@ -48,17 +48,23 @@
                   sed -i 's/:/_/g' multiqc_WDir/${repeat.software}_${i}/featurecounts_result.summary;
                   sed -i 's/ /_/g' multiqc_WDir/${repeat.software}_${i}/featurecounts_result.summary;
               #end for
+
          #else if $repeat.software == "bismark"
+
                #for $file in $repeat.input_file
                   cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'_SE_report.txt;
+
                #end for
+
           #else
+
               #for $file in $repeat.input_file
               cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}';
                   #if $repeat.software == "picard"
 		      sed -i 's/picard.sam.markduplicates.MarkDuplicates/picard.sam.MarkDuplicates/' multiqc_WDir/${repeat.software}_${i}/'${file.display_name}';                
 		  #end if
               #end for 
+
          #end if
         #end for
 
