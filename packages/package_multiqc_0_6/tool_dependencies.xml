@@ -15,7 +15,7 @@
             </actions>
         </install>
         <readme>
-            Installation of multiqc. 
+            Installation of multiqc version 0.6 - required for install : libfreetype6, libpng and pkg-config
         </readme>
     </package>
 </tool_dependency>

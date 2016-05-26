@@ -18,7 +18,8 @@
               #for $k, $file in enumerate ( $repeat.input_file )
                   ## create a directory for each file because of the unqiue name file parsing
                   mkdir multiqc_WDir/${repeat.software}_${i}/file_${k};
-                  cat ${file} > multiqc_WDir/${repeat.software}_${i}/file_$k/fastqc_data.txt;
+                  ##cat ${file} > multiqc_WDir/${repeat.software}_${i}/file_$k/fastqc_data.txt;
+                  ln -s ${file} multiqc_WDir/${repeat.software}_${i}/file_$k/fastqc_data.txt;
               #end for           
 
           #else if $repeat.software == "tophat"
@@ -26,8 +27,10 @@
               #for $file in $repeat.input_file
                   ## test if input file name contains align_summary
                   if [[ '${file.display_name}' =~ align_summary$ ]]; then
-                       cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'.txt; else
-                       cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'_align_summary.txt; 
+                       ##cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'.txt; else
+                       ln -s  ${file} multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'.txt; else
+                       ##cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'_align_summary.txt; 
+                       ln -s ${file} multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'_align_summary.txt;
                   fi;
               #end for
 
@@ -52,8 +55,8 @@
          #else if $repeat.software == "bismark"
 
                #for $file in $repeat.input_file
-                  cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'_SE_report.txt;
-
+                  ##cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'_SE_report.txt;
+                  ln -s ${file} multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'_SE_report.txt;
                #end for
 
           #else
