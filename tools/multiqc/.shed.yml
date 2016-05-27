@@ -3,7 +3,7 @@ categories:
 - Statistics
 description: multiqc tool
 name: multiqc
-owner: cmonjeau
+owner: engineson
 long_description: |
   MultiQC searches a given directory for analysis logs and compiles a HTML report. 
   It's a general use tool, perfect for summarising the output from numerous bioinformatics tools.
