@@ -1,4 +1,4 @@
-categories: []
+categories: [Tool Dependency Packages]
 description: MultiQC tool package
 name: package_multiqc_0_6
-owner: cmonjeau
+owner: engineson

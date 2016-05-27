@@ -1,20 +1,20 @@
 <?xml version="1.0"?>
 <tool_dependency>
     <package name="libpng" version="1.6.7">
-        <repository name="package_libpng_1_6_7" owner="iuc" prior_installation_required="True" toolshed="https://testtoolshed.g2.bx.psu.edu" />
+        <repository name="package_libpng_1_6_7" owner="iuc" prior_installation_required="True" toolshed="https://toolshed.g2.bx.psu.edu" />
     </package>
     <package name="freetype" version="2.5.2">
-        <repository name="package_freetype_2_5_2" owner="iuc" prior_installation_required="True" toolshed="https://testtoolshed.g2.bx.psu.edu" />
+        <repository name="package_freetype_2_5_2" owner="iuc" prior_installation_required="True" toolshed="https://toolshed.g2.bx.psu.edu" />
     </package>    
     <package name="multiqc" version="0.6">
         <install version="1.0">
             <actions>
                 <action type="download_by_url" sha256sum="3a3d6bf5c18e77f9a96cb9a7825fc44160c1c69fabf8a3c6d9ff1af7c0803b1a">https://github.com/ewels/MultiQC/archive/v0.6.zip</action>
                 <action type="set_environment_for_install">
-                    <repository name="package_freetype_2_5_2" owner="iuc" prior_installation_required="True" toolshed="https://testtoolshed.g2.bx.psu.edu">
+                    <repository name="package_freetype_2_5_2" owner="iuc" prior_installation_required="True" toolshed="https://toolshed.g2.bx.psu.edu">
                         <package name="freetype" version="2.5.2" />
                     </repository>
-                    <repository name="package_libpng_1_6_7" owner="iuc" prior_installation_required="True" toolshed="https://testtoolshed.g2.bx.psu.edu">
+                    <repository name="package_libpng_1_6_7" owner="iuc" prior_installation_required="True" toolshed="https://toolshed.g2.bx.psu.edu">
                         <package name="libpng" version="1.6.7" />
                     </repository>
                 </action>
@@ -24,6 +24,7 @@
                     python setup.py install --install-lib $INSTALL_DIR/lib/python --install-scripts $INSTALL_DIR/bin</action>
                 <action type="set_environment">
                     <environment_variable action="prepend_to" name="PYTHONPATH">$INSTALL_DIR/lib/python</environment_variable>
+                    <environment_variable action="prepend_to" name="LD_LIBRARY_PATH">$INSTALL_DIR/lib</environment_variable>
                     <environment_variable action="prepend_to" name="PATH">$INSTALL_DIR/bin</environment_variable>
                 </action>
             </actions>
