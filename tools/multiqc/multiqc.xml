@@ -2,6 +2,7 @@
     <description>aggregate results from bioinformatics analyses across many samples into a single report</description>
     <requirements>
        <requirement type="package" version="0.6">multiqc</requirement>
+       <requirement type="package" version="1.6.7">libpng</requirement>
     </requirements>
     <stdio>
         <exit_code range="1:" />
