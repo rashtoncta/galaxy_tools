@@ -12,7 +12,7 @@ Installation
 
 Requirements: pkg-config
 
-Important: For a good view of mulitqc webpage, you need to deactivate the sanitize_all_html option in galaxy.ini
+Important: For a good view of multiqc webpage, you need to deactivate the sanitize_all_html option in galaxy.ini
 
   sanitize_all_html = False
 
