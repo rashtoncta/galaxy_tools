@@ -235,13 +235,7 @@ Cyril Monjeaud and Yvan Le Bras
     </help>
 
  <citations>
-<citation type="bibtex">@proceedings{proceedings,
-    author = {Phil Ewels, Måns Magnusson, Max Käller},
-    title = {Quality control at scale: MultiQC - Intelligent analysis reporting},
-    journal = {Epigenomics of Common Disease},
-    year = {2015},
-    }
-</citation>
+    <citation type="doi">10.1093/bioinformatics/btw354</citation>
   </citations>
 </tool>
 
