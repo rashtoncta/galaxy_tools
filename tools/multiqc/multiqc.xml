@@ -14,7 +14,7 @@
 
           mkdir multiqc_WDir/${repeat.software}_${i};
 
-          #if $repeat.software == "fastqc"
+          #if str($repeat.software) == "fastqc"
 
               #for $k, $file in enumerate ( $repeat.input_file )
                   ## create a directory for each file because of the unqiue name file parsing
@@ -23,7 +23,7 @@
                   ln -s ${file} multiqc_WDir/${repeat.software}_${i}/file_$k/fastqc_data.txt;
               #end for           
 
-          #else if $repeat.software == "tophat"
+          #else if str($repeat.software) == "tophat"
 
               #for $file in $repeat.input_file
                   ## test if input file name contains align_summary
@@ -35,7 +35,7 @@
                   fi;
               #end for
 
-          #else if $repeat.software == "cutadapt"
+          #else if str($repeat.software) == "cutadapt"
 
               #for $file in $repeat.input_file
                   cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'.txt;
@@ -43,7 +43,7 @@
                   sed -i 's/You are running/This is/' multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'.txt;               
               #end for
 
-          #else if $repeat.software == "featurecounts"
+          #else if str($repeat.software) == "featurecounts"
 
               #for $file in $repeat.input_file
                   ## remove spaces and colon to skip multiqc crash
@@ -53,7 +53,7 @@
                   sed -i 's/ /_/g' multiqc_WDir/${repeat.software}_${i}/featurecounts_result.summary;
               #end for
 
-         #else if $repeat.software == "bismark"
+         #else if str($repeat.software) == "bismark"
 
                #for $file in $repeat.input_file
                   ##cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'_SE_report.txt;
@@ -64,7 +64,7 @@
 
               #for $file in $repeat.input_file
               cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}';
-                  #if $repeat.software == "picard"
+                  #if str($repeat.software) == "picard"
 		      sed -i 's/picard.sam.markduplicates.MarkDuplicates/picard.sam.MarkDuplicates/' multiqc_WDir/${repeat.software}_${i}/'${file.display_name}';                
 		  #end if
               #end for 
