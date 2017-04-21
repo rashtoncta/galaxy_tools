@@ -160,8 +160,8 @@
                 <param name="software" value="picard" />
                 <param name="input_file" value="collectGcBias_data.txt,CollectInsertSizeMetrics.txt,MarkDuplicates_data.txt,picard_CollectBaseDistributionByCycle.txt,picard_CollectRnaSeqMetrics.txt,picard_CollectAlignmentSummaryMetrics.txt" />
             </repeat>
-            <output name="html_file" file="report_picard.html" compare="sim_size" delta="1000"/>
-            <output name="text_file" file="log_picard.txt" compare="sim_size" delta="1000"/>
+            <output name="html_file" file="report_picard.html" compare="sim_size" delta="10000"/>
+            <output name="text_file" file="log_picard.txt" compare="sim_size" delta="10000"/>
         </test>
         <test>
             <repeat name="results">
@@ -240,8 +240,8 @@
                 <param name="software" value="samtools" />
                 <param name="input_file" value="samtools_stats.txt,samtools_flagstat.txt" />
             </repeat>
-            <output name="html_file" file="report_all.html" compare="sim_size" delta="3000"/>
-            <output name="text_file" file="log_all.txt" compare="sim_size" delta="3000"/>
+            <output name="html_file" file="report_all.html" compare="sim_size" delta="5000"/>
+            <output name="text_file" file="log_all.txt" compare="sim_size" delta="5000"/>
         </test>
     </tests>
 
