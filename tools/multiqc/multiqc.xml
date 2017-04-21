@@ -100,11 +100,14 @@
                 <option value="rnastar_counts">RNA STAR (reads per gene)</option>
             </param>
             <param name="input_file" type="data" format="txt, tabular" multiple="true" label="Result file" />
+            <param name="saveLog" type="boolean" checked="false" label="Save log file" help="Save the multiQC log file to the history. This is mostly useful for debugging purposes."/>
         </repeat>
     </inputs>
     <outputs>
         <data format="html" from_work_dir="multiqc_report.html" name="html_file" label="${tool.name} on ${on_string}: Webpage" />
-        <data format="txt" name="text_file" from_work_dir="multiqc_data/.multiqc.log" label="${tool.name} on ${on_string}: Log"/>
+        <data format="txt" name="text_file" from_work_dir="multiqc_data/.multiqc.log" label="${tool.name} on ${on_string}: Log">
+            <filter>saveLog is True</filter>
+        </data>
     </outputs>
     <tests>
         <test>
@@ -112,6 +115,7 @@
                 <param name="software" value="fastqc" />
                 <param name="input_file" value="fastqc_data.txt" />
             </repeat>
+            <param name="saveLog" value="True"/>
             <output name="html_file" file="report_fastqc.html" compare="sim_size" delta="1000"/>
             <output name="text_file" file="log_fastqc.txt" compare="sim_size" delta="1000"/>     
         </test>
@@ -121,7 +125,6 @@
                 <param name="input_file" value="fastqc_data.txt,fastqc_data_2.txt" />
             </repeat>
             <output name="html_file" file="report_fastqc_2.html" compare="sim_size" delta="1000"/>
-            <output name="text_file" file="log_fastqc_2.txt" compare="sim_size" delta="1000"/>
         </test>
         <test>
             <repeat name="results">
@@ -129,7 +132,6 @@
                 <param name="input_file" value="cutadapt.txt" />
             </repeat>
             <output name="html_file" file="report_cutadapt.html" compare="sim_size" delta="1000"/>
-            <output name="text_file" file="log_cutadapt.txt" compare="sim_size" delta="1000"/>
         </test>
         <test>
             <repeat name="results">
@@ -137,7 +139,6 @@
                 <param name="input_file" value="tophat_data.txt" />
             </repeat>
             <output name="html_file" file="report_tophat.html" compare="sim_size" delta="1000"/>
-            <output name="text_file" file="log_tophat.txt" compare="sim_size" delta="1000"/>
         </test>
         <test>
             <repeat name="results">
@@ -145,7 +146,6 @@
                 <param name="input_file" value="bowtie2SE1.txt,bowtie2SE2.txt" />
             </repeat>
             <output name="html_file" file="report_bowtie2SE.html" compare="sim_size" delta="1000"/>
-            <output name="text_file" file="log_bowtie2SE.txt" compare="sim_size" delta="1000"/>
         </test>
         <test>
             <repeat name="results">
@@ -153,7 +153,6 @@
                 <param name="input_file" value="featurecounts_data.txt" />
             </repeat>
             <output name="html_file" file="report_featurecounts.html" compare="sim_size" delta="1000"/>
-            <output name="text_file" file="log_featurecounts.txt" compare="sim_size" delta="1000"/>
         </test>
         <test>
             <repeat name="results">
@@ -161,7 +160,6 @@
                 <param name="input_file" value="collectGcBias_data.txt,CollectInsertSizeMetrics.txt,MarkDuplicates_data.txt,picard_CollectBaseDistributionByCycle.txt,picard_CollectRnaSeqMetrics.txt,picard_CollectAlignmentSummaryMetrics.txt" />
             </repeat>
             <output name="html_file" file="report_picard.html" compare="sim_size" delta="10000"/>
-            <output name="text_file" file="log_picard.txt" compare="sim_size" delta="10000"/>
         </test>
         <test>
             <repeat name="results">
@@ -169,7 +167,6 @@
                 <param name="input_file" value="htseq_data.txt" />
             </repeat>
             <output name="html_file" file="report_htseq.html" compare="sim_size" delta="1000"/>
-            <output name="text_file" file="log_htseq.txt" compare="sim_size" delta="1000"/>
         </test>
         <test>
             <repeat name="results">
@@ -177,7 +174,6 @@
                 <param name="input_file" value="rnastar_log.txt" />
             </repeat>
             <output name="html_file" file="report_rnastar_log.html" compare="sim_size" delta="1000"/>
-            <output name="text_file" file="log_rnastar_log.txt" compare="sim_size" delta="1000"/>
         </test>
         <test>
             <repeat name="results">
@@ -185,7 +181,6 @@
                 <param name="input_file" value="rnastar_counts.txt" />
             </repeat>
             <output name="html_file" file="report_rnastar_counts.html" compare="sim_size" delta="1000"/>
-            <output name="text_file" file="log_rnastar_counts.txt" compare="sim_size" delta="1000"/>
         </test>
         <test>
             <repeat name="results">
@@ -193,7 +188,6 @@
                 <param name="input_file" value="bismark_data.txt" />
             </repeat>
             <output name="html_file" file="report_bismark.html" compare="sim_size" delta="1000"/>
-            <output name="text_file" file="log_bismark.txt" compare="sim_size" delta="1000"/>
         </test>
         <test>
             <repeat name="results">
@@ -201,7 +195,6 @@
                 <param name="input_file" value="samtools_stats.txt,samtools_flagstat.txt" />
             </repeat>
             <output name="html_file" file="report_samtools.html" compare="sim_size" delta="1000"/>
-            <output name="text_file" file="log_samtools.txt" compare="sim_size" delta="1000"/>
         </test>
         <test>
             <repeat name="results">
@@ -209,7 +202,6 @@
                 <param name="input_file" value="samtools_idxstats.txt" />
             </repeat>
             <output name="html_file" file="report_samtools_idxstats.html" compare="sim_size" delta="1000"/>
-            <output name="text_file" file="log_samtools_idxstats.txt" compare="sim_size" delta="1000"/>
         </test>
         <test>
             <repeat name="results">
@@ -241,7 +233,6 @@
                 <param name="input_file" value="samtools_stats.txt,samtools_flagstat.txt" />
             </repeat>
             <output name="html_file" file="report_all.html" compare="sim_size" delta="5000"/>
-            <output name="text_file" file="log_all.txt" compare="sim_size" delta="5000"/>
         </test>
     </tests>
 
@@ -256,34 +247,54 @@ MultiQC aggregates results from bioinformatics analyses across many samples into
 
 MultiQC searches a given directory for analysis logs and compiles an HTML report. It's a general use tool, perfect for summarising the output from numerous bioinformatics tools.
 
-----
-
 **Inputs**
 
 MultiQC takes software output summaries/logs and creates a single report from them. Below is a list of currently compatible Galaxy tools:
 
  - Fastqc
+
  - Cutadapt / Trim Galore!
+
  - Tophat2
+
  - FeatureCounts
+
  - Samtools
+
    - stats
+
    - flagstat
+
    - idxstats
+
  - Picard
+
    - MarkDuplicates metrics
+
    - CollectGCBiasMetrics
+
    - CollectInsertSizeMetrics
+
    - Collect Alignment Summary Metrics
+
    - CollectBaseDistributionByCycle
+
    - CollectRnaSeqMetrics
+
  - Bismark
+
    - Alignment report file
+
  - Bowtie2
+
    - Metrics file
+
  - HTSeq-count ("no feature" file), though note that the "Assigned" metric is always 0
+
  - RNA STAR
+
    - Alignment (ends in Log.final.out)
+
    - Gene counts (ends in ReadsPerGene.out.tab)
 
 ----
