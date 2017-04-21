@@ -1,0 +1,50 @@
+[2017-04-21 13:57:00,282] multiqc                                            [DEBUG  ]  No MultiQC config found: /home/ryan/.local/lib/python2.7/site-packages/multiqc_config.yaml
+[2017-04-21 13:57:00,282] multiqc                                            [DEBUG  ]  No MultiQC config found: /home/ryan/.multiqc_config.yaml
+[2017-04-21 13:57:00,282] multiqc                                            [DEBUG  ]  No MultiQC config found: multiqc_config.yaml
+[2017-04-21 13:57:00,282] multiqc                                            [DEBUG  ]  Command used: /home/ryan/.local/bin/multiqc multiqc_WDir
+[2017-04-21 13:57:00,282] multiqc                                            [DEBUG  ]  Could not connect to multiqc.info for version check
+[2017-04-21 13:57:00,282] multiqc                                            [INFO   ]  This is MultiQC v0.9
+[2017-04-21 13:57:00,282] multiqc                                            [DEBUG  ]  Command     : /home/ryan/.local/bin/multiqc multiqc_WDir
+[2017-04-21 13:57:00,282] multiqc                                            [DEBUG  ]  Working dir : /tmp/tmpqOn7h6/job_working_directory/000/9/working
+[2017-04-21 13:57:00,282] multiqc                                            [INFO   ]  Template    : default
+[2017-04-21 13:57:00,282] multiqc                                            [INFO   ]  Searching 'multiqc_WDir'
+[2017-04-21 13:57:00,283] multiqc                                            [DEBUG  ]  Analysing modules: gatk, htseq, custom_content, peddy, quast, snpeff, qualimap, bcftools, featureCounts, methylQA, rseqc, picard, preseq, prokka, samblaster, samtools, bamtools, bismark, hicup, salmon, kallisto, slamdunk, star, tophat, bowtie2, bowtie1, cutadapt, trimmomatic, skewer, fastq_screen, fastqc
+[2017-04-21 13:57:00,283] multiqc                                            [DEBUG  ]  Using temporary directory for creating report: /tmp/tmpWBGkz4
+[2017-04-21 13:57:00,290] multiqc.modules.gatk.gatk                          [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,293] multiqc.modules.htseq.htseq                        [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,297] multiqc.modules.custom_content.custom_content      [DEBUG  ]  No custom content found
+[2017-04-21 13:57:00,300] multiqc.modules.peddy.peddy                        [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,303] multiqc.modules.quast.quast                        [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,306] multiqc.modules.snpeff.snpeff                      [DEBUG  ]  Could not find any data in ('multiqc_WDir',)
+[2017-04-21 13:57:00,310] multiqc.modules.qualimap.QM_BamQC                  [DEBUG  ]  Using default Qualimap thresholds: 1, 5, 10, 30, 50
+[2017-04-21 13:57:00,312] multiqc.modules.qualimap.qualimap                  [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,315] multiqc.modules.bcftools.bcftools                  [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,318] multiqc.modules.featureCounts.feature_counts       [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,321] multiqc.modules.methylQA.methylQA                  [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,332] multiqc.modules.rseqc.rseqc                        [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,340] multiqc.modules.picard.picard                      [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,343] multiqc.modules.preseq.preseq                      [DEBUG  ]  Could not find any preseq data in ('multiqc_WDir',)
+[2017-04-21 13:57:00,345] multiqc.modules.prokka.prokka                      [DEBUG  ]  Could not find any Prokka data in ('multiqc_WDir',)
+[2017-04-21 13:57:00,348] multiqc.modules.samblaster.samblaster              [DEBUG  ]  Could not find any data in ('multiqc_WDir',)
+[2017-04-21 13:57:00,356] multiqc.modules.samtools.samtools                  [INFO   ]  Found 1 idxstats reports
+[2017-04-21 13:57:00,359] multiqc.modules.bamtools.bamtools                  [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,363] multiqc.modules.bismark.bismark                    [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,365] multiqc.modules.hicup.hicup                        [DEBUG  ]  Could not find any HiCUP data in ('multiqc_WDir',)
+[2017-04-21 13:57:00,368] multiqc.modules.salmon.salmon                      [DEBUG  ]  Could not find any Salmon data in ('multiqc_WDir',)
+[2017-04-21 13:57:00,371] multiqc.modules.kallisto.kallisto                  [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,374] multiqc.modules.slamdunk.slamdunk                  [DEBUG  ]  No slamdunk reports found.
+[2017-04-21 13:57:00,377] multiqc.modules.star.star                          [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,379] multiqc.modules.tophat.tophat                      [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,382] multiqc.modules.bowtie2.bowtie2                    [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,385] multiqc.modules.bowtie1.bowtie1                    [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,388] multiqc.modules.cutadapt.cutadapt                  [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,390] multiqc.modules.trimmomatic.trimmomatic            [DEBUG  ]  Could not find any Trimmomatic data in ('multiqc_WDir',)
+[2017-04-21 13:57:00,393] multiqc.modules.skewer.skewer                      [DEBUG  ]  Could not find any data in ('multiqc_WDir',)
+[2017-04-21 13:57:00,396] multiqc.modules.fastq_screen.fastq_screen          [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,399] multiqc.modules.fastqc.fastqc                      [DEBUG  ]  Could not find any reports in ('multiqc_WDir',)
+[2017-04-21 13:57:00,399] multiqc                                            [INFO   ]  Report      : multiqc_report.html
+[2017-04-21 13:57:00,399] multiqc                                            [INFO   ]  Data        : multiqc_data
+[2017-04-21 13:57:00,399] multiqc                                            [DEBUG  ]  Moving data file from '/tmp/tmpWBGkz4/multiqc_data/multiqc_sources.txt' to '/tmp/tmpqOn7h6/job_working_directory/000/9/working/multiqc_data'
+[2017-04-21 13:57:00,399] multiqc                                            [DEBUG  ]  Moving data file from '/tmp/tmpWBGkz4/multiqc_data/multiqc_samtools_idxstats.txt' to '/tmp/tmpqOn7h6/job_working_directory/000/9/working/multiqc_data'
+[2017-04-21 13:57:00,399] multiqc                                            [DEBUG  ]  Moving data file from '/tmp/tmpWBGkz4/multiqc_data/multiqc_general_stats.txt' to '/tmp/tmpqOn7h6/job_working_directory/000/9/working/multiqc_data'
+[2017-04-21 13:57:00,488] multiqc                                            [INFO   ]  MultiQC complete

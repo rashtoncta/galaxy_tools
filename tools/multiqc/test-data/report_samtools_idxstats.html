@@ -834,98 +834,6 @@ tbody .sorthandle {
   background-color: #ededed;
 }
 </style>
-<style type="text/css">/* CSS for the FastQC MultiQC Module */
-
-/* FastQC statuses popovers */
-.fastqc_passfail_progress .progress-bar {
-  cursor: pointer;
-}
-.mqc-section-fastqc .popover .popover-content {
-  font-size: 11px;
-  max-height: 300px;
-  white-space: nowrap;
-  overflow: auto;
-}
-.popover-success .popover-title {
-  background-color: #dff0d8;
-  color: #3c763d;
-}
-.popover-warning .popover-title {
-  background-color: #fcf8e3;
-  color: #8a6d3b;
-}
-.popover-danger .popover-title {
-  background-color: #f2dede;
-  color: #a94442;
-}
-.fastqc-popover-intro {
-  margin: 5px 5px 0;
-  padding: 3px 5px;
-  border: 1px dashed #ccc;
-  border-radius: 5px;
-  font-size: 10px;
-  color: #999;
-  background-color: #fafafa;
-}
-.fastqc-popover-intro a {
-  color: #999;
-  text-decoration: underline;
-}
-
-/* Other stuff */
-.showhide_orig {
-  padding: 15px;
-  height:100%;
-  overflow: hidden;
-}
-.showhide_orig h4 {
-  margin-top: 0;
-}
-.s_status {
-  text-transform: capitalize;
-}
-.original-plot {
-  max-width:100%;
-  max-height: calc(100% - 60px);
-  cursor: pointer;
-}
-
-.fastqc_passfail_progress {
-  width: 100px;
-  display: inline-block;
-  margin: 0 0 -2px 20px;
-}
-
-
-#fastqc_seq_heatmap {
-  cursor: pointer;
-}
-#fastqc_seq_heatmap_div .hc-plot-wrapper {
-  height: 300px;
-}
-#fastqc_seq_heatmap_footer {
-  clear:both;
-}
-#fastqc_sequence_content_plot h5 {
-  display: inline-block;
-  height: 18px;
-}
-.fastqc_seq_heatmap_key {
-  font-size: 12px;
-}
-.fastqc_seq_heatmap_key div {
-  display: inline-block;
-  width: 120px;
-  margin: 0 8px;
-}
-.fastqc_seq_heatmap_key > span, .fastqc_seq_heatmap_key div > span {
-  display:inline-block;
-  width: 60px;
-}
-#fastqc_seq_heatmap_key_t { border-bottom: 1px solid red; }
-#fastqc_seq_heatmap_key_c { border-bottom: 1px solid blue; }
-#fastqc_seq_heatmap_key_a { border-bottom: 1px solid green; }
-#fastqc_seq_heatmap_key_g { border-bottom: 1px solid black; }</style>
 
 <!-- Include javascript files -->
 <script type="text/javascript">/*! jQuery v1.11.3 | (c) 2005, 2015 jQuery Foundation, Inc. | jquery.org/license */
@@ -4168,469 +4076,6 @@ function load_mqc_config(name){
 
 }
 </script>
-<script type="text/javascript">// Javascript for the FastQC MultiQC Mod
-
-///////////////
-// Per Base Sequence Content
-///////////////
-
-// Global vars
-s_height = 10;
-num_samples = 0;
-sample_names = [];
-sample_statuses = [];
-labels = [];
-c_width = 0;
-c_height = 0;
-ypos = 0;
-max_bp = 0;
-current_single_plot = undefined;
-
-// Function to plot heatmap
-function fastqc_seq_content_heatmap() {
-    
-    // Get sample names, rename and skip hidden samples
-    sample_names = [];
-    sample_statuses = [];
-    var p_data = {};
-    var hidden_samples = 0;
-    $.each(fastqc_seq_content_data, function(s_name, data){
-        // rename sample names
-        var t_status = fastqc_passfails['per_base_sequence_content'][s_name];
-        $.each(window.mqc_rename_f_texts, function(idx, f_text){
-            if(window.mqc_rename_regex_mode){
-                var re = new RegExp(f_text,'g');
-                s_name = s_name.replace(re, window.mqc_rename_t_texts[idx]);
-            } else {
-                s_name = s_name.replace(f_text, window.mqc_rename_t_texts[idx]);
-            }
-        });
-        sample_statuses[s_name] = t_status;
-        p_data[s_name] = JSON.parse(JSON.stringify(data)); // clone data
-        
-        var hide_sample = false;
-        for (i = 0; i < window.mqc_hide_f_texts.length; i++) {
-            var f_text = window.mqc_hide_f_texts[i];
-            if(window.mqc_hide_regex_mode){
-                if(s_name.match(f_text)){ hide_sample = true; }
-            } else {
-                if(s_name.indexOf(f_text) > -1){ hide_sample = true; }
-            }
-        }
-        if(window.mqc_hide_mode == 'show'){
-            hide_sample = !hide_sample;
-        }
-        if(!hide_sample){ sample_names.push(s_name); }
-        else { hidden_samples += 1; }
-    });
-    num_samples = sample_names.length;
-    $('#fastqc_seq_heatmap_div .samples-hidden-warning, #fastqc_seq_heatmap_div .fastqc-heatmap-no-samples').remove();
-    $('#fastqc_seq_heatmap_div .hc-plot-wrapper').show();
-    if(num_samples == 0){
-        $('#fastqc_seq_heatmap_div .hc-plot-wrapper').hide();
-        $('#fastqc_seq_heatmap_div').prepend('<p class="fastqc-heatmap-no-samples text-muted">No samples found.</p>');
-    }
-    if(hidden_samples > 0){
-        $('#fastqc_seq_heatmap_div').prepend('<div class="samples-hidden-warning alert alert-warning"> \
-            <span class="glyphicon glyphicon-info-sign"></span> \
-            <strong>Warning:</strong> '+hidden_samples+' samples hidden in toolbox. \
-            <a href="#mqc_hidesamples" class="alert-link" onclick="mqc_toolbox_openclose(\'#mqc_hidesamples\', true); return false;">See toolbox.</a>\
-        </div>');
-    }
-    if(num_samples == 0){ return; }
-    
-    // Convert the CSS percentage size into pixels
-    c_width = $('#fastqc_seq_heatmap').parent().width() - 5; // -5 for status bar
-    c_height = $('#fastqc_seq_heatmap').parent().height() - 2; // -2 for bottom line padding
-    s_height = c_height / num_samples;
-    // Minimum row height
-    if(s_height < 2){
-        s_height = 2;
-        c_height = num_samples * 2;
-        $('#fastqc_seq_heatmap').parent().parent().height(c_height+10);
-    }
-    // Resize the canvas properties
-    $('#fastqc_seq_heatmap').prop({
-        'width': c_width,
-        'height': c_height+1
-    });
-    var canvas = document.getElementById('fastqc_seq_heatmap');
-    if (canvas && canvas.getContext) {
-        var ctx = canvas.getContext('2d');
-        ctx.strokeStyle = '#666666';
-        // First, do labels and get max base pairs
-        max_bp = 0;
-        labels = [];
-        $.each(sample_names, function(idx, s_name){
-            var s = p_data[s_name];
-            labels.push(s_name);
-            $.each(s, function(bp, v){
-                bp = parseInt(bp);
-                if(bp > max_bp){
-                    max_bp = bp;
-                }
-            });
-        });
-        ypos = 0;
-        $.each(sample_names, function(idx, s_name){
-          
-            // Add a 5px wide bar indicating either status or Highlight
-            var status = sample_statuses[s_name];
-            var s_col = '#999999';
-            if(status == 'pass'){ s_col = '#5cb85c'; }
-            if(status == 'warn'){ s_col = '#f0ad4e'; }
-            if(status == 'fail'){ s_col = '#d9534f'; }
-            // Override status colour with highlights
-            $.each(window.mqc_highlight_f_texts, function(idx, f_text){
-                if((window.mqc_highlight_regex_mode && s_name.match(f_text)) || (!window.mqc_highlight_regex_mode && s_name.indexOf(f_text) > -1)){
-                  s_col = window.mqc_highlight_f_cols[idx];
-                }
-            });
-            ctx.fillStyle = s_col;
-            ctx.fillRect (0, ypos+1, 5, s_height-2);
-            
-            // Plot the squares for the heatmap
-            var s = p_data[s_name];
-            var xpos = 6;
-            var last_bp = 0;
-            $.each(s, function(bp, v){
-                bp = parseInt(bp);
-                var this_width = (bp - last_bp) * (c_width / max_bp);
-                last_bp = bp;
-                // Very old versions of FastQC give counts instead of percentages
-                if(v['t'] > 100){
-                    var t = v['t'] + v['a'] + v['c'] + v['g'];
-                    v['t'] = (v['t']/t)*100;
-                    v['a'] = (v['a']/t)*100;
-                    v['c'] = (v['c']/t)*100;
-                    v['g'] = (v['g']/t)*100;
-                }
-                var r = (v['t'] / 100)*255;
-                var g = (v['a'] / 100)*255;
-                var b = (v['c'] / 100)*255;
-                ctx.fillStyle = chroma(r,g,b).css();
-                // width+1 to avoid vertical white line gaps.
-                ctx.fillRect (xpos, ypos, this_width+1, s_height);
-                xpos += this_width;
-            });
-            // Draw a line under this row if we don't have too many samples
-            if(num_samples <= 20){
-                ctx.beginPath();
-                ctx.moveTo(6, ypos);
-                ctx.lineTo(c_width, ypos);
-                ctx.stroke();
-            }
-            ypos += s_height;
-        });
-        // Final line under row
-        ctx.beginPath();
-        ctx.moveTo(6, ypos);
-        ctx.lineTo(c_width, ypos);
-        ctx.stroke();
-    }
-}
-
-// Set up listeners etc on page load
-$(function () {
-
-    // Add the pass / warning / fails counts to each of the FastQC submodule headings
-    $.each(fastqc_passfails, function(k, vals){
-        var pid = '#fastqc_'+k;
-        var total = 0;
-        var v = { 'pass': 0, 'warn': 0, 'fail': 0 };
-        $.each(vals, function(s_name, status){
-            total += 1;
-            v[status] += 1;
-        });
-        var p_bar = '<div class="progress fastqc_passfail_progress"> \
-            <div class="progress-bar progress-bar-success" style="width: '+(v['pass']/total)*100+'%" title="'+v['pass']+'&nbsp;/&nbsp;'+total+' samples passed">'+v['pass']+'</div> \
-            <div class="progress-bar progress-bar-warning" style="width: '+(v['warn']/total)*100+'%" title="'+v['warn']+'&nbsp;/&nbsp;'+total+' samples with warnings">'+v['warn']+'</div> \
-            <div class="progress-bar progress-bar-danger" style="width: '+(v['fail']/total)*100+'%" title="'+v['fail']+'&nbsp;/&nbsp;'+total+' samples failed">'+v['fail']+'</div> \
-        </div>';
-        $(pid).append(p_bar);
-    });
-    
-    // Create popovers on click
-    $('.mqc-section-fastqc .fastqc_passfail_progress .progress-bar').mouseover(function(){
-        // Does this element already have a popover?
-        if ($(this).attr('data-original-title')) { return false; }
-        // Create it
-        var pid = $(this).closest('h3').attr('id');
-        var k = pid.substr(7);
-        var vals = fastqc_passfails[k];
-        var passes = $(this).hasClass('progress-bar-success') ? true : false;
-        var warns = $(this).hasClass('progress-bar-warning') ? true : false;
-        var fails = $(this).hasClass('progress-bar-danger') ? true : false;
-        var pclass = '';
-        if(passes){ pclass = 'success'; }
-        if(warns){ pclass = 'warning'; }
-        if(fails){ pclass = 'danger'; }
-        var samples = Array();
-        $.each(vals, function(s_name, status){
-            if(status == 'pass' && passes){ samples.push(s_name); }
-            else if(status == 'warn' && warns){ samples.push(s_name); }
-            else if(status == 'fail' && fails){ samples.push(s_name); }
-        });
-        $($(this)).popover({
-            title: $(this).attr('title'),
-            content: samples.sort().join('<br>'),
-            html: true,
-            trigger: 'hover click focus',
-            placement: 'bottom auto',
-            template: '<div class="popover popover-'+pclass+'" role="tooltip"> \
-                <div class="arrow"></div>\
-                <h3 class="popover-title"></h3>\
-                <div class="fastqc-popover-intro">\
-                    Click bar to fix in place <br>\
-                    <a href="#" class="fastqc-status-highlight"><span class="glyphicon glyphicon-pushpin"></span> Highlight these samples</a><br>\
-                    <a href="#" class="fastqc-status-hideothers"><span class="glyphicon glyphicon-eye-close"></span> Show only these samples</a>\
-                </div>\
-                <div class="popover-content"></div>\
-            </div>'
-        }).popover('show');
-    });
-    
-    // Listener for Status higlight click
-    $('.mqc-section-fastqc .fastqc_passfail_progress').on('click', '.fastqc-status-highlight', function(e){
-        e.preventDefault();
-        // Get sample names and highlight colour
-        var samples = $(this).parent().parent().find('.popover-content').html().split('<br>');
-        var f_col = mqc_colours[mqc_colours_idx];
-        // Add sample names to the toolbox
-        for (i = 0; i < samples.length; i++) {
-            var f_text = samples[i];
-            $('#mqc_col_filters').append('<li style="color:'+f_col+';"><span class="hc_handle"><span></span><span></span></span><input class="f_text" value="'+f_text+'"/><button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button></li>');
-        }
-        // Apply highlights and open toolbox
-        apply_mqc_highlights();
-        mqc_toolbox_openclose('#mqc_cols', true);
-        // Update next highlight colour
-        mqc_colours_idx += 1;
-        if(mqc_colours_idx >= mqc_colours.length){ mqc_colours_idx = 0; }
-        $('#mqc_colour_filter_color').val(mqc_colours[mqc_colours_idx]);
-        // Hide the popover
-        $(this).closest('.popover').popover('hide');
-    });
-    
-    // Listener for Status hide others click
-    $('.mqc-section-fastqc .fastqc_passfail_progress').on('click', '.fastqc-status-hideothers', function(e){
-        e.preventDefault();
-        // Get sample names
-        var samples = $(this).parent().parent().find('.popover-content').html().split('<br>');
-        // Check if we're already hiding anything, remove after confirm if so
-        if($('#mqc_hidesamples_filters li').length > 0){
-            if(!confirm($('#mqc_hidesamples_filters li').length+' Hide filters already exist - discard?')){
-                return false;
-            } else {
-                $('#mqc_hidesamples_filters').empty();
-            }
-        }
-        // Set to "show only" and disable regex
-        $('.mqc_hidesamples_showhide[value="show"]').prop('checked', true);
-        $('#mqc_hidesamples .mqc_regex_mode .re_mode').removeClass('on').addClass('off').text('off');
-        // Add sample names to the toolbox
-        for (i = 0; i < samples.length; i++) {
-            var f_text = samples[i];
-            $('#mqc_hidesamples_filters').append('<li><input class="f_text" value="'+f_text+'" /><button type="button" class="close" aria-label="Close"><span aria-hidden="true">&times;</span></button></li>');
-        }
-        // Apply highlights and open toolbox
-        apply_mqc_hidesamples();
-        mqc_toolbox_openclose('#mqc_hidesamples', true);
-        // Hide the popover
-        $(this).closest('.popover').popover('hide');
-    });
-    
-    /////////
-    /// SEQ CONTENT HEATMAP LISTENERS
-    /////////
-    
-    // Seq Content heatmap mouse rollover
-    $('#fastqc_seq_heatmap').mousemove(function(e) {
-        
-        // Replace the heading above the heatmap
-        var pos = findPos(this);
-        var x = e.pageX - pos.x;
-        var y = e.pageY - pos.y;
-        // Get label from y position
-        var idx = Math.floor(y/s_height);
-        var s_name = sample_names[idx];
-        if(s_name === undefined){ return false; }
-        var s_status = sample_statuses[s_name];
-        var s_status_class = 'label-default';
-        if(s_status == 'pass'){ s_status_class = 'label-success'; }
-        if(s_status == 'warn'){ s_status_class = 'label-warning'; }
-        if(s_status == 'fail'){ s_status_class = 'label-danger'; }
-        $('#fastqc_per_base_sequence_content_plot .s_name').html(s_name + ' <span class="label s_status '+s_status_class+'">'+s_status+'</span>');
-        
-        // Show the sequence base percentages on the bar plots below
-        // http://stackoverflow.com/questions/6735470/get-pixel-color-from-canvas-on-mouseover
-        var ctx = this.getContext('2d');
-        var p = ctx.getImageData(x, y, 1, 1).data;
-        var seq_t = (p[0]/255)*100;
-        var seq_a = (p[1]/255)*100;
-        var seq_c = (p[2]/255)*100;
-        var seq_g = 100 - (seq_t + seq_a + seq_c);
-        $('#fastqc_seq_heatmap_key_t span').text(seq_t.toFixed(0)+'%');
-        $('#fastqc_seq_heatmap_key_c span').text(seq_c.toFixed(0)+'%');
-        $('#fastqc_seq_heatmap_key_a span').text(seq_a.toFixed(0)+'%');
-        $('#fastqc_seq_heatmap_key_g span').text(seq_g.toFixed(0)+'%');
-        
-        // Get base pair position from x pos
-        var this_bp = Math.floor((x/c_width)*max_bp);
-        $('#fastqc_seq_heatmap_key_pos').text(this_bp+' bp');
-    });
-    
-    // Remove sample name again when mouse leaves
-    $('#fastqc_seq_heatmap').mouseout(function(e) {
-      $('#fastqc_per_base_sequence_content_plot .s_name').html('<em class="text-muted">rollover for sample name</em>');
-      $('#fastqc_seq_heatmap_key_pos').text('-');
-      $('#fastqc_seq_heatmap_key_t span').text('-');
-      $('#fastqc_seq_heatmap_key_c span').text('-');
-      $('#fastqc_seq_heatmap_key_a span').text('-');
-      $('#fastqc_seq_heatmap_key_g span').text('-');
-    });
-    
-    // Click sample
-    $('#fastqc_seq_heatmap').click(function(e) {
-      e.preventDefault();
-      // Get label from y position
-      var pos = findPos(this);
-      var x = e.pageX - pos.x;
-      var y = e.pageY - pos.y;
-      var idx = Math.floor(y/s_height);
-      var s_name = sample_names[idx];
-      if(s_name !== undefined){
-        plot_single_seqcontent(s_name);
-      }
-    });
-    $('#mqc-module-section-fastqc').on('click', '#fastqc_sequence_content_single_prev', function(e){
-        e.preventDefault();
-        var idx = sample_names.indexOf(current_single_plot) - 1;
-        if(idx < 0){ idx = sample_names.length - 1; }
-        plot_single_seqcontent(sample_names[idx]);
-    });
-    $('#mqc-module-section-fastqc').on('click', '#fastqc_sequence_content_single_next', function(e){
-        e.preventDefault();
-        var idx = sample_names.indexOf(current_single_plot) + 1;
-        if(idx == sample_names.length){ idx = 0; }
-        plot_single_seqcontent(sample_names[idx]);
-    });
-    $('#mqc-module-section-fastqc').on('click', '#fastqc_sequence_content_single_back', function(e){
-        e.preventDefault();
-        $('#fastqc_per_base_sequence_content_plot').slideDown();
-        $('#fastqc_sequence_content_single_wrapper').slideUp(function(){
-          $(this).remove();
-        });
-    });
-      
-    // Highlight the custom heatmap
-    $(document).on('mqc_highlights mqc_hidesamples mqc_renamesamples mqc_plotresize', function(e){
-        fastqc_seq_content_heatmap();
-    });
-    // Seq content - window resized
-    $(window).resize(function() {
-        fastqc_seq_content_heatmap();
-    });
-
-});
-
-function plot_single_seqcontent(s_name){
-  current_single_plot = s_name;
-  var data = fastqc_seq_content_data[s_name];
-  var plot_data = [
-    {'name': '% T', 'data':[]},
-    {'name': '% C', 'data':[]},
-    {'name': '% A', 'data':[]},
-    {'name': '% G', 'data':[]}
-  ];
-  for (var d in data){
-    var base = data[d]['base'].toString().split('-');
-    base = parseFloat(base[0]);
-    plot_data[0]['data'].push([base, data[d]['t']]);
-    plot_data[1]['data'].push([base, data[d]['c']]);
-    plot_data[2]['data'].push([base, data[d]['a']]);
-    plot_data[3]['data'].push([base, data[d]['g']]);
-  }
-  
-  // Create plot div if it doesn't exist, and hide overview
-  if($('#fastqc_sequence_content_single_wrapper').length == 0) {
-    $('#fastqc_per_base_sequence_content_plot').slideUp();
-    var newplot = '<div id="fastqc_sequence_content_single_wrapper"> \
-    <div id="fastqc_sequence_content_single_controls"><div class="btn-group"> \
-      <button class="btn btn-default btn-sm" id="fastqc_sequence_content_single_prev">&laquo; Prev</button> \
-      <button class="btn btn-default btn-sm" id="fastqc_sequence_content_single_next">Next &raquo;</button> \
-    </div> <button class="btn btn-default btn-sm" id="fastqc_sequence_content_single_back">Back to overview heatmap</button></div>\
-    <div class="hc-plot-wrapper"><div id="fastqc_sequence_content_single" class="hc-plot hc-line-plot"><small>loading..</small></div></div></div>';
-    $(newplot).insertAfter('#fastqc_per_base_sequence_content_plot').hide().slideDown();
-  }
-
-  $('#fastqc_sequence_content_single').highcharts({
-    chart: {
-      type: 'line',
-      zoomType: 'x'
-    },
-    colors: ['#dc0000', '#0000dc', '#00dc00', '#404040'],
-    title: {
-      text: 'Per Base Sequence Content: '+s_name,
-      x: 30 // fudge to center over plot area rather than whole plot
-    },
-    xAxis: {
-      title: { text: 'Position (bp)' },
-      allowDecimals: false,
-    },
-    yAxis: {
-      title: { text: '% Reads' },
-      max: 100,
-      min: 0,
-    },
-    legend: {
-      floating: true,
-      layout: 'vertical',
-      align: 'right',
-      verticalAlign: 'top',
-      y: 40
-    },
-    tooltip: {
-      backgroundColor: '#FFFFFF',
-      borderColor: '#CCCCCC',
-      formatter: function () {
-        var texts = [];
-        var bars = [];
-        $.each(this.points, function () {
-          texts.push('<span style="display: inline-block; border-left: 3px solid '+this.color+'; padding-left:5px; margin-bottom: 2px;"></div>' + this.y.toFixed(1) + this.series.name + '</span>');
-          bars.push('<div class="progress-bar" style="width:'+this.y+'%; float:left; font-size:8px; line-height:12px; padding:0; background-color:'+this.color+';">'+this.series.name.replace('%','').trim()+'</div>');
-        });
-        return'<p style="font-weight:bold; text-decoration: underline;">Position: ' + this.x + ' bp</p>\
-            <p>'+texts.join('<br>')+'</p><div class="progress" style="height: 12px; width: 150px; margin:0;">'+bars.join('')+'</div>';
-      },
-			useHTML: true,
-      crosshairs: true,
-      shared: true,
-    },
-    plotOptions: {
-      series: {
-        animation: false,
-        marker: { enabled: false },
-      }
-    },
-    series: plot_data
-  });
-}
-
-
-// Find the position of the mouse cursor over the canvas
-// http://stackoverflow.com/questions/6735470/get-pixel-color-from-canvas-on-mouseover
-function findPos(obj) {
-  var curleft = 0, curtop = 0;
-  if (obj.offsetParent) {
-    do {
-      curleft += obj.offsetLeft;
-      curtop += obj.offsetTop;
-    } while (obj = obj.offsetParent);
-    return { x: curleft, y: curtop };
-  }
-  return undefined;
-}</script>
 <script type="text/javascript">
 mqc_config = {}
 
@@ -4665,26 +4110,12 @@ mqc_config = {}
       </li>
       
       <li>
-        <a href="#fastqc" class="nav-l1">FastQC</a>
+        <a href="#Samtools" class="nav-l1">Samtools</a>
         <ul>
         <li>
-            <a href="#fastqc_per_base_sequence_quality" class="nav-l2">Sequence Quality Histograms</a>
+            <a href="#samtools-idxstats-xy-counts" class="nav-l2">XY counts</a>
           </li><li>
-            <a href="#fastqc_per_sequence_quality_scores" class="nav-l2">Per Sequence Quality Scores</a>
-          </li><li>
-            <a href="#fastqc_per_base_sequence_content" class="nav-l2">Per Base Sequence Content</a>
-          </li><li>
-            <a href="#fastqc_per_sequence_gc_content" class="nav-l2">Per Sequence GC Content</a>
-          </li><li>
-            <a href="#fastqc_per_base_n_content" class="nav-l2">Per Base N Content</a>
-          </li><li>
-            <a href="#fastqc_sequence_length_distribution" class="nav-l2">Sequence Length Distribution</a>
-          </li><li>
-            <a href="#fastqc_sequence_duplication_levels" class="nav-l2">Sequence Duplication Levels</a>
-          </li><li>
-            <a href="#fastqc_overrepresented_sequences" class="nav-l2">Overrepresented sequences</a>
-          </li><li>
-            <a href="#fastqc_adapter_content" class="nav-l2">Adapter Content</a>
+            <a href="#samtools-idxstats" class="nav-l2">Mapped reads per contig</a>
           </li>
         </ul>
       </li>
@@ -4933,7 +4364,7 @@ mqc_config = {}
   </div>
   <a href="#top" class="mqc-toplink hidden-xs" title="Go to top"><span class="glyphicon glyphicon-chevron-up"></span></a>
 </div>
-<script type="text/javascript">var report_id = 'mqc_report_x7c1dh46siz5ernyajku'; </script>
+<script type="text/javascript">var report_id = 'mqc_report_ph984d3z1l52wotck0ae'; </script>
 
 
 <div class="mainpage">
@@ -4959,8 +4390,8 @@ mqc_config = {}
 
 
 <div id="analysis_dirs_wrapper">
-  <p>Report generated on 2017-04-21, 11:04 based on data in:
-  <code class="mqc_analysis_path">/tmp/tmpFJE9Oh/job_working_directory/000/5/working/multiqc_WDir</code>
+  <p>Report generated on 2017-04-21, 13:04 based on data in:
+  <code class="mqc_analysis_path">/tmp/tmpqOn7h6/job_working_directory/000/9/working/multiqc_WDir</code>
   
 </div>
 
@@ -4995,12 +4426,12 @@ mqc_config = {}
         <button type="button" class="mqc_table_makeScatter btn btn-default btn-sm" data-toggle="modal" data-target="#tableScatterModal" data-table="#general_stats_table">
             <span class="glyphicon glyphicon glyphicon-stats"></span> Plot
         </button>
-        <small id="general_stats_table_numrows_text" class="mqc_table_numrows_text">Showing <sup id="general_stats_table_numrows" class="mqc_table_numrows">2</sup>/<sub>2</sub> rows and <sup id="general_stats_table_numcols" class="mqc_table_numcols">3</sup>/<sub>5</sub> columns.</small>
+        <small id="general_stats_table_numrows_text" class="mqc_table_numrows_text">Showing <sup id="general_stats_table_numrows" class="mqc_table_numrows">0</sup>/<sub>0</sub> rows and <sup id="general_stats_table_numcols" class="mqc_table_numcols">0</sup>/<sub>0</sub> columns.</small>
     
         <div id="general_stats_table_container" class="mqc_table_container">
             <div class="table-responsive">
                 <table id="general_stats_table" class="table table-condensed mqc_table">
-        <thead><tr><th class="rowheader">Sample Name</th><th id="header_oyiv_percent_duplicates" class="chroma-col oyiv_percent_duplicates " data-chroma-scale="RdYlGn-rev" data-chroma-max="100.0" data-chroma-min="0.0" data-namespace="FastQC" ><span data-toggle="tooltip" title="FastQC: % Duplicate Reads">% Dups</span></th><th id="header_ipvf_percent_gc" class="chroma-col ipvf_percent_gc " data-chroma-scale="Set1" data-chroma-max="100.0" data-chroma-min="0.0" data-namespace="FastQC" ><span data-toggle="tooltip" title="FastQC: Average % GC Content">% GC</span></th><th id="header_gmay_avg_sequence_length" class="chroma-col gmay_avg_sequence_length hidden" data-chroma-scale="RdYlGn" data-chroma-max="101.0" data-chroma-min="0.0" data-namespace="FastQC" ><span data-toggle="tooltip" title="FastQC: Average Sequence Length (bp)">Length</span></th><th id="header_btol_percent_fails" class="chroma-col btol_percent_fails hidden" data-chroma-scale="Reds" data-chroma-max="100.0" data-chroma-min="0.0" data-namespace="FastQC" ><span data-toggle="tooltip" title="FastQC: Percentage of modules failed in FastQC report (includes those not plotted here)">% Failed</span></th><th id="header_yzik_total_sequences" class="chroma-col yzik_total_sequences " data-chroma-scale="Blues" data-chroma-max="0.267849" data-chroma-min="0.0" data-namespace="FastQC"  data-shared-key=read_count><span data-toggle="tooltip" title="FastQC: Total Sequences (millions)">M Seqs</span></th></tr></thead><tbody><tr><th class="rowheader" data-original-sn="poulet5_1">poulet5_1</th><td class="data-coloured oyiv_percent_duplicates "><div class="wrapper"><span class="bar" style="width:36.3059115993%;"></span><span class="val">36.3%</span></div></td><td class="data-coloured ipvf_percent_gc "><div class="wrapper"><span class="bar" style="width:48.0%;"></span><span class="val">48%</span></div></td><td class="data-coloured gmay_avg_sequence_length hidden"><div class="wrapper"><span class="bar" style="width:100.0%;"></span><span class="val">101</span></div></td><td class="data-coloured btol_percent_fails hidden"><div class="wrapper"><span class="bar" style="width:8.33333333333%;"></span><span class="val">8%</span></div></td><td class="data-coloured yzik_total_sequences "><div class="wrapper"><span class="bar" style="width:100.0%;"></span><span class="val">0.3</span></div></td></tr><tr><th class="rowheader" data-original-sn="poulet5_2">poulet5_2</th><td class="data-coloured oyiv_percent_duplicates "><div class="wrapper"><span class="bar" style="width:36.1733887481%;"></span><span class="val">36.2%</span></div></td><td class="data-coloured ipvf_percent_gc "><div class="wrapper"><span class="bar" style="width:48.0%;"></span><span class="val">48%</span></div></td><td class="data-coloured gmay_avg_sequence_length hidden"><div class="wrapper"><span class="bar" style="width:100.0%;"></span><span class="val">101</span></div></td><td class="data-coloured btol_percent_fails hidden"><div class="wrapper"><span class="bar" style="width:8.33333333333%;"></span><span class="val">8%</span></div></td><td class="data-coloured yzik_total_sequences "><div class="wrapper"><span class="bar" style="width:100.0%;"></span><span class="val">0.3</span></div></td></tr></tbody></table></div></div>
+        <thead><tr><th class="rowheader">Sample Name</th></tr></thead><tbody></tbody></table></div></div>
     <!-- MultiQC Table Columns Modal -->
     <div class="modal fade" id="general_stats_table_configModal" tabindex="-1">
       <div class="modal-dialog modal-lg">
@@ -5029,61 +4460,6 @@ mqc_config = {}
               </thead>
               <tbody>
                 
-            <tr class="oyiv_percent_duplicates" style="background-color: rgba(55,126,184, 0.15);">
-              <td class="sorthandle ui-sortable-handle">||</span></td>
-              <td style="text-align:center;">
-                <input class="mqc_table_col_visible" type="checkbox"  checked="checked" value="oyiv_percent_duplicates" data-target="#general_stats_table">
-              </td>
-              <td>FastQC</td>
-              <td>% Dups</td>
-              <td>% Duplicate Reads</td>
-              <td><code>percent_duplicates</code></td>
-              <td>None</td>
-            </tr>
-            <tr class="ipvf_percent_gc" style="background-color: rgba(55,126,184, 0.15);">
-              <td class="sorthandle ui-sortable-handle">||</span></td>
-              <td style="text-align:center;">
-                <input class="mqc_table_col_visible" type="checkbox"  checked="checked" value="ipvf_percent_gc" data-target="#general_stats_table">
-              </td>
-              <td>FastQC</td>
-              <td>% GC</td>
-              <td>Average % GC Content</td>
-              <td><code>percent_gc</code></td>
-              <td>None</td>
-            </tr>
-            <tr class="gmay_avg_sequence_length text-muted" style="background-color: rgba(55,126,184, 0.15);">
-              <td class="sorthandle ui-sortable-handle">||</span></td>
-              <td style="text-align:center;">
-                <input class="mqc_table_col_visible" type="checkbox"  value="gmay_avg_sequence_length" data-target="#general_stats_table">
-              </td>
-              <td>FastQC</td>
-              <td>Length</td>
-              <td>Average Sequence Length (bp)</td>
-              <td><code>avg_sequence_length</code></td>
-              <td>None</td>
-            </tr>
-            <tr class="btol_percent_fails text-muted" style="background-color: rgba(55,126,184, 0.15);">
-              <td class="sorthandle ui-sortable-handle">||</span></td>
-              <td style="text-align:center;">
-                <input class="mqc_table_col_visible" type="checkbox"  value="btol_percent_fails" data-target="#general_stats_table">
-              </td>
-              <td>FastQC</td>
-              <td>% Failed</td>
-              <td>Percentage of modules failed in FastQC report (includes those not plotted here)</td>
-              <td><code>percent_fails</code></td>
-              <td>None</td>
-            </tr>
-            <tr class="yzik_total_sequences" style="background-color: rgba(55,126,184, 0.15);">
-              <td class="sorthandle ui-sortable-handle">||</span></td>
-              <td style="text-align:center;">
-                <input class="mqc_table_col_visible" type="checkbox"  checked="checked" value="yzik_total_sequences" data-target="#general_stats_table">
-              </td>
-              <td>FastQC</td>
-              <td>M Seqs</td>
-              <td>Total Sequences (millions)</td>
-              <td><code>total_sequences</code></td>
-              <td>read_count</td>
-            </tr>
               </tbody>
             </table>
         </div>
@@ -5095,120 +4471,43 @@ mqc_config = {}
   
 
 
-<div id="mqc-module-section-fastqc" class="mqc-module-section">
-  <h2 id="fastqc">FastQC</h2>
-  <p><a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/" target="_blank">FastQC</a> is a quality control tool for high throughput sequence data, written by Simon Andrews at the Babraham Institute in Cambridge.</p><script type="text/javascript">fastqc_passfails = {"adapter_content": {"poulet5_1": "pass", "poulet5_2": "pass"}, "sequence_length_distribution": {"poulet5_1": "pass", "poulet5_2": "pass"}, "per_base_sequence_quality": {"poulet5_1": "warn", "poulet5_2": "warn"}, "sequence_duplication_levels": {"poulet5_1": "warn", "poulet5_2": "warn"}, "per_tile_sequence_quality": {"poulet5_1": "pass", "poulet5_2": "pass"}, "basic_statistics": {"poulet5_1": "pass", "poulet5_2": "pass"}, "per_sequence_gc_content": {"poulet5_1": "pass", "poulet5_2": "pass"}, "per_base_n_content": {"poulet5_1": "pass", "poulet5_2": "pass"}, "per_base_sequence_content": {"poulet5_1": "fail", "poulet5_2": "fail"}, "overrepresented_sequences": {"poulet5_1": "pass", "poulet5_2": "pass"}, "kmer_content": {"poulet5_1": "warn", "poulet5_2": "warn"}, "per_sequence_quality_scores": {"poulet5_1": "warn", "poulet5_2": "warn"}};</script>
+<div id="mqc-module-section-Samtools" class="mqc-module-section">
+  <h2 id="Samtools">Samtools</h2>
+  <p><a href="http://www.htslib.org" target="_blank">Samtools</a>  is a suite of programs for interacting with high-throughput sequencing data.</p>
   
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_per_base_sequence_quality">Sequence Quality Histograms</h3>
-      <p>The mean quality value across each base position in the read. See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/2%20Per%20Base%20Sequence%20Quality.html" target="_bkank">FastQC help</a>.</p><div class="mqc_hcplot_plotgroup"><div class="hc-plot-wrapper"><div id="fastqc_per_base_sequence_quality_plot" class="hc-plot not_rendered hc-line-plot"><small>loading..</small></div></div></div> 
-<script type="text/javascript"> 
-        mqc_plots["fastqc_per_base_sequence_quality_plot"] = { 
-            "plot_type": "xy_line", 
-            "datasets": [[{"color": "#f0ad4e", "data": [[1, 20.91988023102569], [2, 20.71684045861661], [3, 20.351574954545285], [4, 22.531542025544244], [5, 24.673566076408722], [6, 25.813099918237516], [7, 27.587864804423386], [8, 27.598941941168345], [9, 27.07115949658203], [10, 27.129873548155864], [12, 27.009298149330405], [14, 27.123565889736383], [16, 27.086309823818645], [18, 27.07924614241606], [20, 27.082520375286073], [22, 27.054301117420636], [24, 27.06350966402712], [26, 27.082996389756914], [28, 27.065495857740743], [30, 27.09608772106672], [32, 27.087097581099798], [34, 27.098251253504774], [36, 27.05184077595959], [38, 27.06521958267531], [40, 27.072148859992012], [42, 27.065725464720796], [44, 27.07168031241483], [46, 27.048083061725073], [48, 27.04642354460909], [50, 27.062865644448927], [52, 27.01859629866081], [54, 26.994157155710866], [56, 27.110127347871376], [58, 26.995846540401494], [60, 27.00461640700544], [62, 26.981614641085088], [64, 26.98900313236189], [66, 27.001189102815392], [68, 26.917739099268616], [70, 26.98481793846533], [72, 26.89518908041471], [74, 26.93677034448514], [76, 26.87640237596556], [78, 26.906094478605482], [80, 26.80463992772047], [82, 26.717012197170796], [84, 26.46960974280285], [86, 26.442842795754324], [88, 26.34282375517549], [90, 26.03493946215965], [92, 25.833215729758187], [94, 25.503102494315826], [96, 24.52807178671565], [98, 23.202399486277717], [100, 23.72906749698524]], "name": "poulet5_1"}, {"color": "#f0ad4e", "data": [[1, 20.590586487162543], [2, 20.458478471078855], [3, 20.178608096352797], [4, 22.495204387546714], [5, 24.59397272343746], [6, 25.77560491172265], [7, 26.651378201897337], [8, 27.54968284369178], [9, 27.089005372429988], [10, 27.058984726469017], [12, 26.954911162632676], [14, 27.066410552214123], [16, 27.04552938409328], [18, 27.025118630273028], [20, 27.019042445557012], [22, 27.010315513591614], [24, 27.03931879529138], [26, 26.978450544896567], [28, 27.003714779595967], [30, 27.025971722873706], [32, 27.017791740868923], [34, 27.00628899118533], [36, 27.00906294218011], [38, 27.034922661648913], [40, 27.005346295860726], [42, 27.000909094303132], [44, 27.004913216028434], [46, 26.979999925331065], [48, 26.941037674211962], [50, 26.99995146519121], [52, 26.95084543903468], [54, 26.97609847339359], [56, 26.99262270906369], [58, 26.942271578389317], [60, 26.88024222603034], [62, 26.866450873439888], [64, 26.947610407356386], [66, 26.975012040366025], [68, 26.966286975124042], [70, 26.917634562757375], [72, 26.885127441207544], [74, 26.846286527110426], [76, 26.769134848366058], [78, 26.709703975000842], [80, 26.551336760637525], [82, 26.42626069165836], [84, 26.309463541024982], [86, 26.127226534353312], [88, 25.91885539987082], [90, 25.674260497519125], [92, 25.371903572535274], [94, 24.758753999454918], [96, 23.84710415196622], [98, 22.40618968149965], [100, 23.009550156991438]], "name": "poulet5_2"}]], 
-            "config": {"xlab": "Position (bp)", "colors": {"poulet5_1": "#f0ad4e", "poulet5_2": "#f0ad4e"}, "tt_label": "<b>Base {point.x}</b>: {point.y:.2f}", "xDecimals": false, "title": "Mean Quality Scores", "ylab": "Phred Score", "ymin": 0, "id": "fastqc_per_base_sequence_quality_plot", "yPlotBands": [{"color": "#c3e6c3", "to": 100, "from": 28}, {"color": "#e6dcc3", "to": 28, "from": 20}, {"color": "#e6c3c3", "to": 20, "from": 0}]} 
+    <div class="mqc-section mqc-section-Samtools">
+      <h3 id="samtools-idxstats-xy-counts">XY counts</h3>
+      <div class="mqc_hcplot_plotgroup"><div class="btn-group hc_switch_group"> 
+<button class="btn btn-default btn-sm " data-action="set_numbers" data-target="samtools-idxstats-xy-plot" data-ylab="Number of Reads">Number of Reads</button> 
+<button class="btn btn-default btn-sm active" data-action="set_percent" data-target="samtools-idxstats-xy-plot" data-ylab="Percent of X+Y Reads">Percent of X+Y Reads</button> 
+</div> <div class="hc-plot-wrapper"><div id="samtools-idxstats-xy-plot" class="hc-plot not_rendered hc-bar-plot"><small>loading..</small></div></div> 
+    </div> 
+    <script type="text/javascript"> 
+        mqc_plots["samtools-idxstats-xy-plot"] = { 
+            "plot_type": "bar_graph", 
+            "samples": [["samtools_idxstats"]], 
+            "datasets": [[{"data": [506800], "name": "Chromosome X"}, {"data": [132190], "name": "Chromosome Y"}]], 
+            "config": {"cpswitch_counts_label": "Number of Reads", "title": "Samtools idxstats - chrXY mapped reads", "stacking": "percent", "cpswitch_percent_label": "Percent of X+Y Reads", "cpswitch_c_active": false, "ylab": "Percent of X+Y Reads", "id": "samtools-idxstats-xy-plot"} 
         } 
     </script>
       <hr>
     </div>
 
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_per_sequence_quality_scores">Per Sequence Quality Scores</h3>
-      <p>The number of reads with average quality scores. Shows if a subset of reads has poor quality. See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/3%20Per%20Sequence%20Quality%20Scores.html" target="_bkank">FastQC help</a>.</p><div class="mqc_hcplot_plotgroup"><div class="hc-plot-wrapper"><div id="fastqc_per_sequence_quality_scores_plot" class="hc-plot not_rendered hc-line-plot"><small>loading..</small></div></div></div> 
-<script type="text/javascript"> 
-        mqc_plots["fastqc_per_sequence_quality_scores_plot"] = { 
-            "plot_type": "xy_line", 
-            "datasets": [[{"color": "#f0ad4e", "data": [[2.0, 91.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [6.0, 1.0], [7.0, 4.0], [8.0, 1.0], [9.0, 4.0], [10.0, 19.0], [11.0, 20.0], [12.0, 36.0], [13.0, 57.0], [14.0, 112.0], [15.0, 185.0], [16.0, 315.0], [17.0, 488.0], [18.0, 667.0], [19.0, 878.0], [20.0, 1127.0], [21.0, 1933.0], [22.0, 2846.0], [23.0, 4426.0], [24.0, 7254.0], [25.0, 15604.0], [26.0, 147526.0], [27.0, 84255.0]], "name": "poulet5_1"}, {"color": "#f0ad4e", "data": [[2.0, 308.0], [3.0, 0.0], [4.0, 0.0], [5.0, 2.0], [6.0, 2.0], [7.0, 5.0], [8.0, 11.0], [9.0, 19.0], [10.0, 24.0], [11.0, 37.0], [12.0, 67.0], [13.0, 75.0], [14.0, 135.0], [15.0, 215.0], [16.0, 364.0], [17.0, 551.0], [18.0, 904.0], [19.0, 1284.0], [20.0, 1843.0], [21.0, 2574.0], [22.0, 3707.0], [23.0, 5673.0], [24.0, 9154.0], [25.0, 18567.0], [26.0, 152994.0], [27.0, 69334.0]], "name": "poulet5_2"}]], 
-            "config": {"xlab": "Mean Sequence Quality (Phred Score)", "colors": {"poulet5_1": "#f0ad4e", "poulet5_2": "#f0ad4e"}, "tt_label": "<b>Phred {point.x}</b>: {point.y} reads", "xDecimals": false, "title": "Per Sequence Quality Scores", "xmin": 0, "ylab": "Count", "ymin": 0, "xPlotBands": [{"color": "#c3e6c3", "to": 100, "from": 28}, {"color": "#e6dcc3", "to": 28, "from": 20}, {"color": "#e6c3c3", "to": 20, "from": 0}], "id": "fastqc_per_sequence_quality_scores_plot"} 
-        } 
-    </script>
-      <hr>
-    </div>
-
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_per_base_sequence_content">Per Base Sequence Content</h3>
-      <p>The proportion of each base position for which each of the four normal DNA bases has been called.                     See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/4%20Per%20Base%20Sequence%20Content.html" target="_bkank">FastQC help</a>.</p>                  <p class="text-primary"><span class="glyphicon glyphicon-info-sign"></span> Click a heatmap row to see a line plot for that dataset.</p><div id="fastqc_per_base_sequence_content_plot"> 
-            <h5><span class="s_name"><em class="text-muted">rollover for sample name</em></span></h5> 
-            <div class="fastqc_seq_heatmap_key">
-                Position: <span id="fastqc_seq_heatmap_key_pos">-</span>
-                <div><span id="fastqc_seq_heatmap_key_t"> %T: <span>-</span></span></div>
-                <div><span id="fastqc_seq_heatmap_key_c"> %C: <span>-</span></span></div>
-                <div><span id="fastqc_seq_heatmap_key_a"> %A: <span>-</span></span></div>
-                <div><span id="fastqc_seq_heatmap_key_g"> %G: <span>-</span></span></div>
-            </div>
-            <div id="fastqc_seq_heatmap_div" class="fastqc-overlay-plot">
-                <div id="fastqc_seq" class="hc-plot"> 
-                    <canvas id="fastqc_seq_heatmap" height="100%" width="800px" style="width:100%;"></canvas> 
-                </div> 
-            </div> 
-            <div class="clearfix"></div> 
-        </div> 
-        <script type="text/javascript"> 
-            fastqc_seq_content_data = {"poulet5_1": {"1": {"a": 12.690042536664064, "c": 52.344371454499964, "base": 1.0, "t": 10.404490437653351, "g": 24.561095571182623}, "2": {"a": 21.261606352833127, "c": 19.55355442805461, "base": 2.0, "t": 40.84540170021169, "g": 18.339437518900574}, "3": {"a": 22.75060764115756, "c": 28.28079555255209, "base": 3.0, "t": 24.606199993279546, "g": 24.3623968130108}, "4": {"a": 30.13376939992309, "c": 24.912170663321497, "base": 4.0, "t": 20.251335640603475, "g": 24.70272429615194}, "5": {"a": 30.437785609748815, "c": 20.201382873868763, "base": 5.0, "t": 22.448552910606015, "g": 26.912278605776415}, "6": {"a": 32.44626636649754, "c": 22.008669063539532, "base": 6.0, "t": 23.826857669806493, "g": 21.71820690015643}, "7": {"a": 18.11617739845958, "c": 23.62786495376126, "base": 7.0, "t": 38.19876124234177, "g": 20.05719640543739}, "8": {"a": 21.73762082367304, "c": 27.489742354834252, "base": 8.0, "t": 30.101661757184083, "g": 20.67097506430862}, "9": {"a": 20.6063864341476, "c": 26.22223715600954, "base": 9.0, "t": 32.13340352213374, "g": 21.03797288770912}, "10": {"a": 29.215714824397327, "c": 23.6259982303462, "base": "10-11", "t": 22.228755754174927, "g": 24.92953119108154}, "12": {"a": 24.05403790941911, "c": 25.189565762799187, "base": "12-13", "t": 27.701242117760376, "g": 23.055154210021318}, "14": {"a": 25.209166358657303, "c": 24.283644889471308, "base": "14-15", "t": 26.766200359157583, "g": 23.740988392713806}, "16": {"a": 25.528936079656823, "c": 24.253403970147357, "base": "16-17", "t": 25.649339739928095, "g": 24.568320210267725}, "18": {"a": 25.55880365429776, "c": 24.607148057300943, "base": "18-19", "t": 25.791957408838563, "g": 24.04209087956274}, "20": {"a": 25.75256954478083, "c": 24.253777314830373, "base": "20-21", "t": 26.05945887421644, "g": 23.93419426617236}, "22": {"a": 25.89910733286292, "c": 24.196095561305064, "base": "22-23", "t": 25.740809187265963, "g": 24.163987918566058}, "24": {"a": 25.91833458403802, "c": 24.117319833189597, "base": "24-25", "t": 25.975642992880317, "g": 23.988702589892068}, "26": {"a": 26.093246568029, "c": 24.01184996023879, "base": "26-27", "t": 25.94857550336197, "g": 23.946327968370237}, "28": {"a": 25.78393049815381, "c": 24.451463324485065, "base": "28-29", "t": 25.775716915127557, "g": 23.988889262233574}, "30": {"a": 25.67715391881247, "c": 24.32359277055356, "base": "30-31", "t": 26.00980403137589, "g": 23.98944927925809}, "32": {"a": 26.05105861884868, "c": 23.93718102363645, "base": "32-33", "t": 26.071779248755828, "g": 23.93998110875904}, "34": {"a": 25.96780275453707, "c": 24.25919081273404, "base": "34-35", "t": 25.658300012320375, "g": 24.114706420408513}, "36": {"a": 25.775530242786047, "c": 24.414128856183893, "base": "36-37", "t": 25.919454618087055, "g": 23.890886282943}, "38": {"a": 25.796064200351694, "c": 23.920940529925446, "base": "38-39", "t": 26.301572901149527, "g": 23.981422368573337}, "40": {"a": 25.791397391814048, "c": 24.146067373781495, "base": "40-41", "t": 26.08111286583112, "g": 23.981422368573337}, "42": {"a": 25.829665221822744, "c": 24.219989621017813, "base": "42-43", "t": 26.05553875504482, "g": 23.894806402114625}, "44": {"a": 26.04489843157899, "c": 24.02193026668011, "base": "44-45", "t": 26.20394326654197, "g": 23.729228035198936}, "46": {"a": 25.874839928467157, "c": 24.189375357010853, "base": "46-47", "t": 25.88977371578763, "g": 24.046010998734364}, "48": {"a": 25.742302565998003, "c": 24.259377485075547, "base": "48-49", "t": 25.94857550336197, "g": 24.049744445564478}, "50": {"a": 26.056285444410843, "c": 23.97190207915654, "base": "50-51", "t": 26.02343111230581, "g": 23.948381364126803}, "52": {"a": 26.181169240878255, "c": 24.07718527976584, "base": "52-53", "t": 25.754062923512876, "g": 23.98758255584303}, "54": {"a": 25.763956557612683, "c": 24.184708548473207, "base": "54-55", "t": 26.049005223092113, "g": 24.002329670821993}, "56": {"a": 25.93812185223764, "c": 23.715227609585998, "base": "56-57", "t": 26.200956509077876, "g": 24.145694029098486}, "58": {"a": 26.029031282550992, "c": 23.96014172164167, "base": "58-59", "t": 25.90638755418165, "g": 24.10443944162569}, "60": {"a": 25.956415741705214, "c": 24.087265586207156, "base": "60-61", "t": 26.048818550750607, "g": 23.907500121337023}, "62": {"a": 25.956975758729733, "c": 23.799790180288145, "base": "62-63", "t": 26.25397145406554, "g": 23.989262606916583}, "64": {"a": 25.83377201333587, "c": 24.077745296790358, "base": "64-65", "t": 25.889960388129136, "g": 24.19852230174464}, "66": {"a": 25.92654816706428, "c": 24.123293348117784, "base": "66-67", "t": 26.010737393083417, "g": 23.939421091734523}, "68": {"a": 25.83750546016599, "c": 23.966301908911365, "base": "68-69", "t": 26.237170943330014, "g": 23.959021687592635}, "70": {"a": 26.19087620263656, "c": 24.015770079410416, "base": "70-71", "t": 25.813424728111734, "g": 23.97992898984129}, "72": {"a": 26.096606670176108, "c": 23.974328819596117, "base": "72-73", "t": 26.129087657598127, "g": 23.799976852629655}, "74": {"a": 26.019324320792688, "c": 23.741361737396815, "base": "74-75", "t": 26.18191593024428, "g": 24.05739801156622}, "76": {"a": 25.837318787824483, "c": 23.947074657736263, "base": "76-77", "t": 26.0995934276402, "g": 24.116013126799054}, "78": {"a": 26.152981717310876, "c": 23.98310241964689, "base": "78-79", "t": 25.835452064409424, "g": 24.028463798632814}, "80": {"a": 25.988336712102715, "c": 23.808563780338922, "base": "80-81", "t": 26.165115419508755, "g": 24.037984088049612}, "82": {"a": 25.723635331847422, "c": 24.048997756198457, "base": "82-83", "t": 26.134501155501795, "g": 24.09286575645233}, "84": {"a": 25.817531519624865, "c": 24.162307867492505, "base": "84-85", "t": 26.270771964801064, "g": 23.749388648081567}, "86": {"a": 26.199276458004324, "c": 23.648025566643895, "base": "86-87", "t": 26.24613121572229, "g": 23.906566759629495}, "88": {"a": 25.881373460419866, "c": 23.935127627879886, "base": "88-89", "t": 25.988710056785724, "g": 24.194788854914524}, "90": {"a": 25.716915127553207, "c": 24.13822713543825, "base": "90-91", "t": 25.838438821873517, "g": 24.30641891513502}, "92": {"a": 26.09231320632147, "c": 23.771229312037754, "base": "92-93", "t": 26.2431444582582, "g": 23.89331302338258}, "94": {"a": 25.78803728966694, "c": 24.018010147508484, "base": "94-95", "t": 25.850945868754412, "g": 24.343006694070166}, "96": {"a": 25.853745953877, "c": 23.916087049046293, "base": "96-97", "t": 25.936815145847103, "g": 24.293351851229612}, "98": {"a": 25.91702787764748, "c": 23.73669492885917, "base": "98-99", "t": 26.050311929482657, "g": 24.295965264010693}, "100": {"a": 25.744542634096078, "c": 23.848324989079668, "base": "100-101", "t": 25.755742974586425, "g": 24.65138940223783}}, "poulet5_2": {"1": {"a": 12.979270544437881, "c": 52.57753922748578, "base": 1.0, "t": 10.183447832489852, "g": 24.259742395586485}, "2": {"a": 21.439745518763136, "c": 19.30114733104589, "base": 2.0, "t": 40.641206097693015, "g": 18.617901052497956}, "3": {"a": 22.73930460819342, "c": 28.53622750131604, "base": 3.0, "t": 24.34692681324179, "g": 24.37754107724875}, "4": {"a": 30.088221348595663, "c": 25.395652027821647, "base": 4.0, "t": 20.10050438866675, "g": 24.41562223491594}, "5": {"a": 30.530261453281515, "c": 20.074370260855932, "base": 5.0, "t": 22.40926790841108, "g": 26.98610037745147}, "6": {"a": 32.48808097099485, "c": 21.990375174071957, "base": 6.0, "t": 23.803336954776757, "g": 21.71820690015643}, "7": {"a": 18.00865412975221, "c": 23.879872614794156, "base": 7.0, "t": 38.0975848332456, "g": 20.013888422208034}, "8": {"a": 21.85895784565184, "c": 27.645800432333147, "base": 8.0, "t": 29.885495185720313, "g": 20.609746536294704}, "9": {"a": 20.74116386471482, "c": 26.5145660428077, "base": 9.0, "t": 31.829127605479208, "g": 20.915142486998274}, "10": {"a": 29.204327811565474, "c": 23.630105021859332, "base": "10-11", "t": 22.19142128587376, "g": 24.97414588070144}, "12": {"a": 24.228949893410093, "c": 25.285328673991692, "base": "12-13", "t": 27.574118253194897, "g": 22.91160317940332}, "14": {"a": 25.36261102337511, "c": 24.17332153564135, "base": "14-15", "t": 26.722705703586726, "g": 23.741361737396815}, "16": {"a": 25.610138548211864, "c": 24.22782985936106, "base": "16-17", "t": 25.582884386352013, "g": 24.579147206075064}, "18": {"a": 25.60957853118735, "c": 24.643922508577596, "base": "18-19", "t": 25.727182106336034, "g": 24.019316853899024}, "20": {"a": 25.856546038999582, "c": 24.228389876385574, "base": "20-21", "t": 26.02679121445292, "g": 23.88827287016192}, "22": {"a": 26.122927470328435, "c": 24.163241229200032, "base": "22-23", "t": 25.75256954478083, "g": 23.961261755690707}, "24": {"a": 26.03985827835833, "c": 24.167348020713163, "base": "24-25", "t": 25.928974907503854, "g": 23.863818793424656}, "26": {"a": 26.16418205780122, "c": 23.961261755690707, "base": "26-27", "t": 26.033138074064116, "g": 23.84141811244395}, "28": {"a": 25.823318362211545, "c": 24.37754107724875, "base": "28-29", "t": 25.908814294621223, "g": 23.890326265918485}, "30": {"a": 25.788223962008445, "c": 24.39676832842385, "base": "30-31", "t": 25.969856150293637, "g": 23.84515155927407}, "32": {"a": 26.149621615163767, "c": 23.88696616377138, "base": "32-33", "t": 26.046018465628023, "g": 23.917393755436834}, "34": {"a": 26.049191895433623, "c": 24.24220362965701, "base": "34-35", "t": 25.611445254602405, "g": 24.097159220306963}, "36": {"a": 25.954922362973164, "c": 24.464343716048965, "base": "36-37", "t": 25.862706226269278, "g": 23.718027694708585}, "38": {"a": 25.979376439710432, "c": 23.990569313307127, "base": "38-39", "t": 26.10724699364194, "g": 23.9228072533405}, "40": {"a": 25.983296558882056, "c": 24.08969232664673, "base": "40-41", "t": 26.044338414554467, "g": 23.882672699916743}, "42": {"a": 26.000097069617585, "c": 24.297645315084246, "base": "42-43", "t": 25.91497448189092, "g": 23.787283133407257}, "44": {"a": 26.142154721503534, "c": 23.973582130230092, "base": "44-45", "t": 26.11620726603422, "g": 23.768055882232154}, "46": {"a": 26.0038305164477, "c": 24.241456940290984, "base": "46-47", "t": 25.79867761313277, "g": 23.956034930128542}, "48": {"a": 25.95436234594865, "c": 24.339086574898545, "base": "48-49", "t": 25.834892047384905, "g": 23.8716590317679}, "50": {"a": 26.11900735115681, "c": 23.974702164279126, "base": "50-51", "t": 25.965562686439004, "g": 23.940727798125064}, "52": {"a": 26.227277309230203, "c": 24.214389450772636, "base": "52-53", "t": 25.698807910427146, "g": 23.85952532957002}, "54": {"a": 25.95342898424112, "c": 24.210469331601015, "base": "54-55", "t": 25.899480677545935, "g": 23.936621006611936}, "56": {"a": 25.939801903311192, "c": 23.873712427524463, "base": "56-57", "t": 26.084286295636723, "g": 24.102199373527622}, "58": {"a": 26.216823658105877, "c": 23.991129330331642, "base": "58-59", "t": 25.769370055516355, "g": 24.02267695604613}, "60": {"a": 26.040978312407365, "c": 24.112839696993454, "base": "60-61", "t": 25.961455894925873, "g": 23.884726095673308}, "62": {"a": 26.08801974246684, "c": 23.842164801809975, "base": "62-63", "t": 26.275252100997204, "g": 23.794563354725984}, "64": {"a": 26.01055072074191, "c": 24.19273545915796, "base": "64-65", "t": 25.83302532396985, "g": 23.963688496130285}, "66": {"a": 25.963135945999426, "c": 24.343006694070166, "base": "66-67", "t": 25.901534073302496, "g": 23.792323286627916}, "68": {"a": 26.06225895933903, "c": 23.965928564228353, "base": "68-69", "t": 26.086713036076297, "g": 23.88509944035632}, "70": {"a": 26.232877479475373, "c": 24.243883680730562, "base": "70-71", "t": 25.739315808533913, "g": 23.78392303126015}, "72": {"a": 26.11751397242476, "c": 24.097159220306963, "base": "72-73", "t": 25.980869818442482, "g": 23.80445698882579}, "74": {"a": 26.278238858461293, "c": 23.710560801048352, "base": "74-75", "t": 26.054418720995788, "g": 23.956781619494567}, "76": {"a": 26.073085955146368, "c": 24.181535118667608, "base": "76-77", "t": 25.85971946880519, "g": 23.885659457380836}, "78": {"a": 26.194236304783665, "c": 24.071025092496146, "base": "78-79", "t": 25.794384149278137, "g": 23.94035445344205}, "80": {"a": 26.158021870531527, "c": 23.896673125529684, "base": "80-81", "t": 26.12890098525662, "g": 23.81640401868217}, "82": {"a": 25.704269391092353, "c": 24.18400700395933, "base": "82-83", "t": 26.116256017860845, "g": 23.995467587087475}, "84": {"a": 25.9592158268278, "c": 24.193855493206993, "base": "84-85", "t": 26.086339691393285, "g": 23.760588988571918}, "86": {"a": 26.35799715137475, "c": 23.82055527658359, "base": "86-87", "t": 26.019186219075337, "g": 23.802261352966323}, "88": {"a": 26.200414418786984, "c": 23.927271369635424, "base": "88-89", "t": 25.7484739308182, "g": 24.123840280759396}, "90": {"a": 25.911801052085316, "c": 24.20598919540487, "base": "90-91", "t": 25.786170566251883, "g": 24.09603918625793}, "92": {"a": 26.454007153364245, "c": 23.769628816558768, "base": "92-93", "t": 25.948866139498072, "g": 23.827497890578915}, "94": {"a": 25.997670329178007, "c": 24.080545381912945, "base": "94-95", "t": 25.765076591661717, "g": 24.156707697247327}, "96": {"a": 26.079246142416064, "c": 24.03574401995154, "base": "96-97", "t": 25.670433714518254, "g": 24.214576123114142}, "98": {"a": 26.024551146354852, "c": 23.88696616377138, "base": "98-99", "t": 25.918147911696515, "g": 24.170334778177256}, "100": {"a": 25.864978902953588, "c": 24.162465927336545, "base": "100-101", "t": 25.310294611851685, "g": 24.662260557858183}}};
-            $(function () { fastqc_seq_content_heatmap(); }); 
-        </script>
-      <hr>
-    </div>
-
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_per_sequence_gc_content">Per Sequence GC Content</h3>
-      <p>The average GC content of reads. Normal random library typically have a roughly normal distribution of GC content. See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/5%20Per%20Sequence%20GC%20Content.html" target="_bkank">FastQC help</a>.</p><div class="mqc_hcplot_plotgroup"><div class="btn-group hc_switch_group">
-<button class="btn btn-default btn-sm active" data-action="set_data" data-ylab="Percentage"  data-newdata="0" data-target="fastqc_per_sequence_gc_content_plot">Percentages</button>
-<button class="btn btn-default btn-sm " data-action="set_data" data-ylab="Count"  data-newdata="1" data-target="fastqc_per_sequence_gc_content_plot">Counts</button>
+    <div class="mqc-section mqc-section-Samtools">
+      <h3 id="samtools-idxstats">Mapped reads per contig</h3>
+      <p>The <code>samtools idxstats</code> tool counts the number of mapped reads per chromosome / contig. Chromosomes with &lt; 0.1% of the total aligned reads are omitted from this plot.</p><div class="mqc_hcplot_plotgroup"><div class="btn-group hc_switch_group">
+<button class="btn btn-default btn-sm active" data-action="set_data" data-ylab="Fraction of total count"  data-newdata="0" data-target="samtools-idxstats-mapped-reads-plot">Normalised Counts</button>
+<button class="btn btn-default btn-sm " data-action="set_data" data-ylab="# mapped reads"  data-newdata="1" data-target="samtools-idxstats-mapped-reads-plot">Counts</button>
 </div>
 
-<div class="hc-plot-wrapper"><div id="fastqc_per_sequence_gc_content_plot" class="hc-plot not_rendered hc-line-plot"><small>loading..</small></div></div></div> 
+<div class="hc-plot-wrapper"><div id="samtools-idxstats-mapped-reads-plot" class="hc-plot not_rendered hc-line-plot"><small>loading..</small></div></div></div> 
 <script type="text/javascript"> 
-        mqc_plots["fastqc_per_sequence_gc_content_plot"] = { 
+        mqc_plots["samtools-idxstats-mapped-reads-plot"] = { 
             "plot_type": "xy_line", 
-            "datasets": [[{"color": "#5cb85c", "data": [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [6.0, 0.0], [7.0, 0.0], [8.0, 0.0], [9.0, 0.0], [10.0, 0.0], [11.0, 0.0], [12.0, 0.0], [13.0, 0.0], [14.0, 0.00018667234150584845], [15.0, 0.0007466893660233938], [16.0, 0.0018667234150584846], [17.0, 0.0028000851225877268], [18.0, 0.003920119171622817], [19.0, 0.005786842586681301], [20.0, 0.007466893660233938], [21.0, 0.010640323465833362], [22.0, 0.01586714902799712], [23.0, 0.023520715029736905], [24.0, 0.04722810240097965], [25.0, 0.08512258772666689], [26.0, 0.1437377029595033], [27.0, 0.20347285224137482], [28.0, 0.26880817176842176], [29.0, 0.4033989299941385], [30.0, 0.550496735100747], [31.0, 0.6509264548308935], [32.0, 0.7522895362685692], [33.0, 0.8676530433191835], [34.0, 1.0255778442331314], [35.0, 1.2602249775059828], [36.0, 1.4920720256562465], [37.0, 1.7138387673651945], [38.0, 2.002994224357754], [39.0, 2.322017255991249], [40.0, 2.7194426710572], [41.0, 3.2286848186851547], [42.0, 3.614163203894732], [43.0, 3.854970524437276], [44.0, 4.071697112925566], [45.0, 4.15289958148061], [46.0, 4.228315207448973], [47.0, 4.525870919809296], [48.0, 4.838733764173098], [49.0, 4.86468121964241], [50.0, 4.6737154142819275], [51.0, 4.384559957289368], [52.0, 4.025029027549104], [53.0, 3.8262229838453754], [54.0, 3.8952917502025395], [55.0, 3.7043259448420565], [56.0, 3.280019712599263], [57.0, 2.98563743004454], [58.0, 2.5764516574637204], [59.0, 2.1639057827357955], [60.0, 1.8544030405190985], [61.0, 1.5204462215651355], [62.0, 1.3587879738210709], [63.0, 1.2197170793992138], [64.0, 0.9563224055344617], [65.0, 0.7476227277309231], [66.0, 0.5829777225227647], [67.0, 0.5060687178223552], [68.0, 0.45622720264029365], [69.0, 0.38043823198891913], [70.0, 0.29979578045839256], [71.0, 0.2122464522921497], [72.0, 0.1386975497388454], [73.0, 0.08773600050774877], [74.0, 0.06141520035542414], [75.0, 0.04125458747279251], [76.0, 0.026320800152324627], [77.0, 0.020907302248655026], [78.0, 0.014747114978962028], [79.0, 0.010080306441315816], [80.0, 0.0067202042942105435], [81.0, 0.0063468596111988474], [82.0, 0.005786842586681301], [83.0, 0.004666808537646211], [84.0, 0.00242674043957603], [85.0, 0.0005600170245175453], [86.0, 0.0], [87.0, 0.0], [88.0, 0.0], [89.0, 0.0], [90.0, 0.0], [91.0, 0.0], [92.0, 0.0], [93.0, 0.0], [94.0, 0.0], [95.0, 0.0], [96.0, 0.0], [97.0, 0.0], [98.0, 0.0], [99.0, 0.0], [100.0, 0.0]], "name": "poulet5_1"}, {"color": "#5cb85c", "data": [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [6.0, 0.0], [7.0, 0.0], [8.0, 0.0], [9.0, 0.0], [10.0, 0.0], [11.0, 0.0], [12.0, 0.0], [13.0, 0.0], [14.0, 0.00018667234150584845], [15.0, 0.0009333617075292423], [16.0, 0.0018667234150584846], [17.0, 0.0022400680980701813], [18.0, 0.0035467744886111207], [19.0, 0.0067202042942105435], [20.0, 0.00970696175830412], [21.0, 0.013253736246915239], [22.0, 0.017173855418538057], [23.0, 0.026507472493830477], [24.0, 0.0485348087915206], [25.0, 0.08717598348323123], [26.0, 0.14541775403305596], [27.0, 0.20253949053384554], [28.0, 0.27048822284197443], [29.0, 0.39686539804143384], [30.0, 0.5350029307557617], [31.0, 0.6285257738501917], [32.0, 0.745195987291347], [33.0, 0.8838935370301924], [34.0, 1.060485572094725], [35.0, 1.2387576582328104], [36.0, 1.4651912084794045], [37.0, 1.7625602484982212], [38.0, 2.05712920339445], [39.0, 2.3367643709702106], [40.0, 2.7493102456981355], [41.0, 3.261539150790184], [42.0, 3.58728238671789], [43.0, 3.8290230689679636], [44.0, 4.0800973682933295], [45.0, 4.164099921970961], [46.0, 4.2081545945663414], [47.0, 4.495816672826853], [48.0, 4.780491993623273], [49.0, 4.8064394490925855], [50.0, 4.6602750056935065], [51.0, 4.389786782851532], [52.0, 4.042202882967643], [53.0, 3.8951050778610337], [54.0, 3.963053810169163], [55.0, 3.7166463193814425], [56.0, 3.270499423182465], [57.0, 2.981717310872917], [58.0, 2.6068792491291735], [59.0, 2.166332523175371], [60.0, 1.8344290999779727], [61.0, 1.5596474132813638], [62.0, 1.4006025783183809], [63.0, 1.2253172496443892], [64.0, 0.9456820820686282], [65.0, 0.7295155106048558], [66.0, 0.5648705053966974], [67.0, 0.46574749205709187], [68.0, 0.41142584067888993], [69.0, 0.3572908616421939], [70.0, 0.29008881870008846], [71.0, 0.1999260777527637], [72.0, 0.13496410290872843], [73.0, 0.0944562048019593], [74.0, 0.05861511523283641], [75.0, 0.036961123618157996], [76.0, 0.022400680980701814], [77.0, 0.017360527760043903], [78.0, 0.013813753271432784], [79.0, 0.008026910684751483], [80.0, 0.005040153220657908], [81.0, 0.006160187269692999], [82.0, 0.00728022131872809], [83.0, 0.0052268255621637566], [84.0, 0.00242674043957603], [85.0, 0.0011200340490350907], [86.0, 0.00018667234150584845], [87.0, 0.0], [88.0, 0.0], [89.0, 0.0], [90.0, 0.0], [91.0, 0.0], [92.0, 0.0], [93.0, 0.0], [94.0, 0.0], [95.0, 0.0], [96.0, 0.0], [97.0, 0.0], [98.0, 0.0], [99.0, 0.0], [100.0, 0.0]], "name": "poulet5_2"}], [{"color": "#5cb85c", "data": [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [6.0, 0.0], [7.0, 0.0], [8.0, 0.0], [9.0, 0.0], [10.0, 0.0], [11.0, 0.0], [12.0, 0.0], [13.0, 0.0], [14.0, 0.5], [15.0, 2.0], [16.0, 5.0], [17.0, 7.5], [18.0, 10.5], [19.0, 15.5], [20.0, 20.0], [21.0, 28.5], [22.0, 42.5], [23.0, 63.0], [24.0, 126.5], [25.0, 228.0], [26.0, 385.0], [27.0, 545.0], [28.0, 720.0], [29.0, 1080.5], [30.0, 1474.5], [31.0, 1743.5], [32.0, 2015.0], [33.0, 2324.0], [34.0, 2747.0], [35.0, 3375.5], [36.0, 3996.5], [37.0, 4590.5], [38.0, 5365.0], [39.0, 6219.5], [40.0, 7284.0], [41.0, 8648.0], [42.0, 9680.5], [43.0, 10325.5], [44.0, 10906.0], [45.0, 11123.5], [46.0, 11325.5], [47.0, 12122.5], [48.0, 12960.5], [49.0, 13030.0], [50.0, 12518.5], [51.0, 11744.0], [52.0, 10781.0], [53.0, 10248.5], [54.0, 10433.5], [55.0, 9922.0], [56.0, 8785.5], [57.0, 7997.0], [58.0, 6901.0], [59.0, 5796.0], [60.0, 4967.0], [61.0, 4072.5], [62.0, 3639.5], [63.0, 3267.0], [64.0, 2561.5], [65.0, 2002.5], [66.0, 1561.5], [67.0, 1355.5], [68.0, 1222.0], [69.0, 1019.0], [70.0, 803.0], [71.0, 568.5], [72.0, 371.5], [73.0, 235.0], [74.0, 164.5], [75.0, 110.5], [76.0, 70.5], [77.0, 56.0], [78.0, 39.5], [79.0, 27.0], [80.0, 18.0], [81.0, 17.0], [82.0, 15.5], [83.0, 12.5], [84.0, 6.5], [85.0, 1.5], [86.0, 0.0], [87.0, 0.0], [88.0, 0.0], [89.0, 0.0], [90.0, 0.0], [91.0, 0.0], [92.0, 0.0], [93.0, 0.0], [94.0, 0.0], [95.0, 0.0], [96.0, 0.0], [97.0, 0.0], [98.0, 0.0], [99.0, 0.0], [100.0, 0.0]], "name": "poulet5_1"}, {"color": "#5cb85c", "data": [[0.0, 0.0], [1.0, 0.0], [2.0, 0.0], [3.0, 0.0], [4.0, 0.0], [5.0, 0.0], [6.0, 0.0], [7.0, 0.0], [8.0, 0.0], [9.0, 0.0], [10.0, 0.0], [11.0, 0.0], [12.0, 0.0], [13.0, 0.0], [14.0, 0.5], [15.0, 2.5], [16.0, 5.0], [17.0, 6.0], [18.0, 9.5], [19.0, 18.0], [20.0, 26.0], [21.0, 35.5], [22.0, 46.0], [23.0, 71.0], [24.0, 130.0], [25.0, 233.5], [26.0, 389.5], [27.0, 542.5], [28.0, 724.5], [29.0, 1063.0], [30.0, 1433.0], [31.0, 1683.5], [32.0, 1996.0], [33.0, 2367.5], [34.0, 2840.5], [35.0, 3318.0], [36.0, 3924.5], [37.0, 4721.0], [38.0, 5510.0], [39.0, 6259.0], [40.0, 7364.0], [41.0, 8736.0], [42.0, 9608.5], [43.0, 10256.0], [44.0, 10928.5], [45.0, 11153.5], [46.0, 11271.5], [47.0, 12042.0], [48.0, 12804.5], [49.0, 12874.0], [50.0, 12482.5], [51.0, 11758.0], [52.0, 10827.0], [53.0, 10433.0], [54.0, 10615.0], [55.0, 9955.0], [56.0, 8760.0], [57.0, 7986.5], [58.0, 6982.5], [59.0, 5802.5], [60.0, 4913.5], [61.0, 4177.5], [62.0, 3751.5], [63.0, 3282.0], [64.0, 2533.0], [65.0, 1954.0], [66.0, 1513.0], [67.0, 1247.5], [68.0, 1102.0], [69.0, 957.0], [70.0, 777.0], [71.0, 535.5], [72.0, 361.5], [73.0, 253.0], [74.0, 157.0], [75.0, 99.0], [76.0, 60.0], [77.0, 46.5], [78.0, 37.0], [79.0, 21.5], [80.0, 13.5], [81.0, 16.5], [82.0, 19.5], [83.0, 14.0], [84.0, 6.5], [85.0, 3.0], [86.0, 0.5], [87.0, 0.0], [88.0, 0.0], [89.0, 0.0], [90.0, 0.0], [91.0, 0.0], [92.0, 0.0], [93.0, 0.0], [94.0, 0.0], [95.0, 0.0], [96.0, 0.0], [97.0, 0.0], [98.0, 0.0], [99.0, 0.0], [100.0, 0.0]], "name": "poulet5_2"}]], 
-            "config": {"yDecimals": false, "colors": {"poulet5_1": "#5cb85c", "poulet5_2": "#5cb85c"}, "data_labels": [{"ylab": "Percentage", "name": "Percentages"}, {"ylab": "Count", "name": "Counts"}], "xmin": 0, "ymin": 0, "id": "fastqc_per_sequence_gc_content_plot", "xlab": "%GC", "title": "Per Sequence GC Content", "xmax": 100, "tt_label": "<b>{point.x}% GC</b>: {point.y}", "ylab": "Count"} 
+            "datasets": [[{"data": [0.061360361662626296, 0.04002513513557639, 0.03503609831964825, 0.05166542565022124, 0.03737341224096424, 0.0740837838689798, 0.029783327194184684, 0.028287262926403434, 0.02778899346303117, 0.02658887676687859, 0.016903673806373053, 0.14877861501559989, 0.05039479142320955, 0.046351932839681316, 0.04418378563976732, 0.04824177754915222, 0.04303239699699556, 0.056245611492486275, 0.07189692409186545, 0.031823940017273344, 0.008300723423211056, 0.0175096975733555, 0.0013259556381309075, 0.0012794253706628735], "name": "samtools_idxstats"}], [{"data": [977171, 637405, 557954, 822778, 595176, 1179793, 474303, 450478, 442543, 423431, 269193, 2369317, 802543, 738160, 703632, 768256, 685296, 895718, 1144967, 506800, 132190, 278844, 21116, 20375], "name": "samtools_idxstats"}]], 
+            "config": {"xlab": "Chromosome Name", "title": "Samtools idxstats - Mapped reads per contig", "data_labels": [{"ylab": "Fraction of total count", "name": "Normalised Counts"}, {"ylab": "# mapped reads", "name": "Counts"}], "tt_label": "<strong>{point.category}:</strong> {point.y:.2f}", "ylab": "# mapped reads", "id": "samtools-idxstats-mapped-reads-plot", "categories": ["1", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "2", "3", "4", "5", "6", "7", "8", "9", "X", "Y", "JH584304.1", "GL456392.1", "GL456396.1"]} 
         } 
     </script>
-      <hr>
-    </div>
-
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_per_base_n_content">Per Base N Content</h3>
-      <p>The percentage of base calls at each position for which an N was called. See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/6%20Per%20Base%20N%20Content.html" target="_bkank">FastQC help</a>.</p><div class="mqc_hcplot_plotgroup"><div class="hc-plot-wrapper"><div id="fastqc_per_base_n_content_plot" class="hc-plot not_rendered hc-line-plot"><small>loading..</small></div></div></div> 
-<script type="text/javascript"> 
-        mqc_plots["fastqc_per_base_n_content_plot"] = { 
-            "plot_type": "xy_line", 
-            "datasets": [[{"color": "#5cb85c", "data": [[1, 0.029867574640935753], [2, 0.0], [3, 0.003733446830116969], [4, 0.0], [5, 0.0003733446830116969], [6, 0.0], [7, 0.0], [8, 0.0], [9, 0.0], [10, 0.0], [12, 0.0], [14, 0.0], [16, 0.0], [18, 0.0], [20, 0.0], [22, 0.0], [24, 0.0], [26, 0.0], [28, 0.0], [30, 0.0], [32, 0.0], [34, 0.0], [36, 0.0], [38, 0.0], [40, 0.0], [42, 0.0], [44, 0.0], [46, 0.0], [48, 0.0], [50, 0.0], [52, 0.0], [54, 0.0], [56, 0.0], [58, 0.0], [60, 0.0], [62, 0.0], [64, 0.0], [66, 0.0], [68, 0.0], [70, 0.0], [72, 0.0], [74, 0.0], [76, 0.0], [78, 0.0], [80, 0.0], [82, 0.0], [84, 0.0], [86, 0.0], [88, 0.0], [90, 0.0], [92, 0.0], [94, 0.0], [96, 0.0], [98, 0.0], [100, 0.0]], "name": "poulet5_1"}, {"color": "#5cb85c", "data": [[1, 0.11461681768459094], [2, 0.003733446830116969], [3, 0.0], [4, 0.0], [5, 0.0], [6, 0.0], [7, 0.0], [8, 0.0], [9, 0.0], [10, 0.0], [12, 0.0], [14, 0.0], [16, 0.0], [18, 0.0], [20, 0.0], [22, 0.0], [24, 0.0], [26, 0.0], [28, 0.0], [30, 0.0], [32, 0.0], [34, 0.0], [36, 0.0], [38, 0.0], [40, 0.0], [42, 0.0], [44, 0.0], [46, 0.0], [48, 0.0], [50, 0.0], [52, 0.0], [54, 0.0], [56, 0.0], [58, 0.0], [60, 0.0], [62, 0.0], [64, 0.0], [66, 0.0], [68, 0.0], [70, 0.0], [72, 0.0], [74, 0.0], [76, 0.0], [78, 0.0], [80, 0.0], [82, 0.00018667234150584845], [84, 0.0], [86, 0.00018667234150584845], [88, 0.0014933787320467876], [90, 0.0], [92, 0.0011200340490350907], [94, 0.0], [96, 0.0], [98, 0.0], [100, 0.01456044263745618]], "name": "poulet5_2"}]], 
-            "config": {"colors": {"poulet5_1": "#5cb85c", "poulet5_2": "#5cb85c"}, "xmin": 0, "ymin": 0, "id": "fastqc_per_base_n_content_plot", "xlab": "Position in Read (bp)", "yCeiling": 100, "title": "Per Base N Content", "yPlotBands": [{"color": "#e6c3c3", "to": 100, "from": 20}, {"color": "#e6dcc3", "to": 20, "from": 5}, {"color": "#c3e6c3", "to": 5, "from": 0}], "yMinRange": 5, "xDecimals": false, "tt_label": "<b>Base {point.x}</b>: {point.y:.2f}%", "ylab": "Percentage N-Count"} 
-        } 
-    </script>
-      <hr>
-    </div>
-
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_sequence_length_distribution">Sequence Length Distribution</h3>
-      <p>All samples have sequences of a single length (101bp).
-      <hr>
-    </div>
-
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_sequence_duplication_levels">Sequence Duplication Levels</h3>
-      <p>The relative level of duplication found for every sequence. See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/8%20Duplicate%20Sequences.html" target="_bkank">FastQC help</a>.</p><div class="mqc_hcplot_plotgroup"><div class="hc-plot-wrapper"><div id="fastqc_sequence_duplication_levels_plot" class="hc-plot not_rendered hc-line-plot"><small>loading..</small></div></div></div> 
-<script type="text/javascript"> 
-        mqc_plots["fastqc_sequence_duplication_levels_plot"] = { 
-            "plot_type": "xy_line", 
-            "datasets": [[{"color": "#f0ad4e", "data": [51.950409087115126, 12.733226849043577, 6.104532706343167, 3.797510353351082, 2.778779513412342, 2.115694786796508, 1.718213983752925, 1.603152557845755, 1.1654319215012086, 15.850860027094066, 0.18218821374420768, 0.0, 0.0, 0.0, 0.0, 0.0], "name": "poulet5_1"}, {"color": "#f0ad4e", "data": [52.122617512935754, 12.630148461958491, 6.090258145748586, 3.974143548082379, 2.7249391002950074, 2.119038045746843, 1.7696029190496514, 1.3781286803040145, 1.3334375701059644, 15.730893862039416, 0.12679215373389083, 0.0, 0.0, 0.0, 0.0, 0.0], "name": "poulet5_2"}]], 
-            "config": {"xlab": "Sequence Duplication Level", "colors": {"poulet5_1": "#f0ad4e", "poulet5_2": "#f0ad4e"}, "tt_label": "<b>{point.x}</b>: {point.y:.1f}%", "ymax": 100, "title": "Sequence Duplication Levels", "ylab": "% of Library", "ymin": 0, "id": "fastqc_sequence_duplication_levels_plot", "categories": [1.0, 2.0, 3.0, 4.0, 5.0, 6.0, 7.0, 8.0, 9.0, ">10", ">50", ">100", ">500", ">1k", ">5k", ">10k+"], "yMinTickInterval": 0.1} 
-        } 
-    </script>
-      <hr>
-    </div>
-
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_overrepresented_sequences">Overrepresented sequences</h3>
-      <p> The total amount of overrepresented sequences found in each library. See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/9%20Overrepresented%20Sequences.html" target="_bkank">FastQC help for further information</a>.</p><div class="alert alert-info">2 samples had less than 1% of reads made up of overrepresented sequences</div>
-      <hr>
-    </div>
-
-    <div class="mqc-section mqc-section-fastqc">
-      <h3 id="fastqc_adapter_content">Adapter Content</h3>
-      <p>The cumulative percentage count of the proportion of your library which has seen each of the adapter sequences at each position. See the <a href="http://www.bioinformatics.babraham.ac.uk/projects/fastqc/Help/3%20Analysis%20Modules/10%20Adapter%20Content.html" target="_bkank">FastQC help</a>. Only samples with &ge; 0.1% adapter contamination are shown.</p><div class="alert alert-warning">No samples found with any adapter contamination > 0.1%</div>
       
     </div>
 

@@ -1,8 +1,8 @@
-<tool id="multiqc" name="multiqc" version="0.6">
+<tool id="multiqc" name="multiqc" version="0.9.0">
     <description>aggregate results from bioinformatics analyses across many samples into a single report</description>
     <requirements>
-       <requirement type="package" version="0.6">multiqc</requirement>
-       <requirement type="package" version="1.6.7">libpng</requirement>
+       <requirement type="package" version="0.9">multiqc</requirement>
+<!--       <requirement type="package" version="1.6.7">libpng</requirement> -->
     </requirements>
     <stdio>
         <exit_code range="1:" />
@@ -11,85 +11,96 @@
         mkdir multiqc_WDir;
         
         #for $i, $repeat in enumerate( $results )
+            mkdir multiqc_WDir/${repeat.software}_${i};
 
-          mkdir multiqc_WDir/${repeat.software}_${i};
-
-          #if str($repeat.software) == "fastqc"
-
-              #for $k, $file in enumerate ( $repeat.input_file )
-                  ## create a directory for each file because of the unqiue name file parsing
-                  mkdir multiqc_WDir/${repeat.software}_${i}/file_${k};
-                  ##cat ${file} > multiqc_WDir/${repeat.software}_${i}/file_$k/fastqc_data.txt;
-                  ln -s ${file} multiqc_WDir/${repeat.software}_${i}/file_$k/fastqc_data.txt;
-              #end for           
-
-          #else if str($repeat.software) == "tophat"
-
-              #for $file in $repeat.input_file
-                  ## test if input file name contains align_summary
-                  if [[ '${file.display_name}' =~ align_summary$ ]]; then
-                       ##cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'.txt; else
-                       ln -s  ${file} multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'.txt; else
-                       ##cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'_align_summary.txt; 
-                       ln -s ${file} multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'_align_summary.txt;
-                  fi;
-              #end for
-
-          #else if str($repeat.software) == "cutadapt"
-
-              #for $file in $repeat.input_file
-                  cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'.txt;
-                  ## replace header for old cutadapt release
-                  sed -i 's/You are running/This is/' multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'.txt;               
-              #end for
-
-          #else if str($repeat.software) == "featurecounts"
-
-              #for $file in $repeat.input_file
-                  ## remove spaces and colon to skip multiqc crash
-                  cat ${file} > multiqc_WDir/${repeat.software}_${i}/featurecounts_result.summary;
-                  ## remove spaces and colon to skip multiqc crash
-                  sed -i 's/:/_/g' multiqc_WDir/${repeat.software}_${i}/featurecounts_result.summary;
-                  sed -i 's/ /_/g' multiqc_WDir/${repeat.software}_${i}/featurecounts_result.summary;
-              #end for
-
-         #else if str($repeat.software) == "bismark"
-
-               #for $file in $repeat.input_file
-                  ##cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'_SE_report.txt;
-                  ln -s ${file} multiqc_WDir/${repeat.software}_${i}/'${file.display_name}'_SE_report.txt;
-               #end for
-
-          #else
-
-              #for $file in $repeat.input_file
-              cat ${file} > multiqc_WDir/${repeat.software}_${i}/'${file.display_name}';
-                  #if str($repeat.software) == "picard"
-		      sed -i 's/picard.sam.markduplicates.MarkDuplicates/picard.sam.MarkDuplicates/' multiqc_WDir/${repeat.software}_${i}/'${file.display_name}';                
-		  #end if
-              #end for 
-
-         #end if
+            #if str($repeat.software) == "fastqc":
+                ## Searches for files named "fastqc_data.txt"
+                #for $k, $file in enumerate($repeat.input_file):
+                    mkdir multiqc_WDir/${repeat.software}_${i}/file_${k};
+                    ln -s '${file}' multiqc_WDir/fastqc_${i}/file_${k}/fastqc_data.txt;
+                #end for           
+            #else if str($repeat.software) == "tophat":
+                ## Searches for files ending in "align_summary.txt"
+                #for $file in $repeat.input_file:
+                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}align_summary.txt';
+                #end for
+            #else if str($repeat.software) == "bowtie2":
+                ## Searches for files containing 'reads; of these;'
+                #for $file in $repeat.input_file:
+                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}.txt';
+                #end for
+            #else if str($repeat.software) == "cutadapt":
+                ## Searches for files containing 'This is cutadapt'
+                #for $file in $repeat.input_file:
+                    cat '${file}' > 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}.txt';
+                    ## replace header for old cutadapt release
+                    sed -i 's/You are running/This is/' 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}.txt';               
+                #end for
+            #else if str($repeat.software) == "featurecounts":
+                ## Checks for files ending in '.summary'
+                #for $k, $file in enumerate($repeat.input_file):
+                    mkdir multiqc_WDir/${repeat.software}_${i}/file_${k};
+                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/file_${k}/${file.display_name}.summary';
+                #end for
+            #else if str($repeat.software) == "bismark":
+                ## Checks for files ending in _SE_report.txt
+                #for $file in $repeat.input_file
+                    ln -s ${file} 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}_SE_report.txt';
+                #end for
+            #else if str($repeat.software) == "samtools":
+                ## Checks for files containing 'This file was produced by samtools stats'
+                #for $file in $repeat.input_file
+                    ln -s ${file} 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}';
+                #end for
+            #else if str($repeat.software) == "picard":
+                #for $file in $repeat.input_file
+                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}';
+                #end for 
+            #else if str($repeat.software) == "samtools_idxstats":
+                ## Checks for files containing "idxstats" in the name
+                #for $file in $repeat.input_file
+                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}_idxstats.txt';
+                #end for 
+            #else if str($repeat.software) == "htseq":
+                ## Checks for files containing "__too_low_aQual"
+                #for $file in $repeat.input_file
+                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}';
+                #end for 
+            #else if str($repeat.software) == "rnastar_log":
+                ## Checks for files named Log.final.out
+                #for $k, $file in enumerate($repeat.input_file):
+                    mkdir 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}';
+                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}/Log.final.out';
+                #end for 
+            #else if str($repeat.software) == "rnastar_counts":
+                ## Checks for files named ReadsPerGene.out.tab
+                #for $k, $file in enumerate($repeat.input_file):
+                    mkdir 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}';
+                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}/ReadsPerGene.out.tab';
+                #end for 
+            #end if
         #end for
 
         multiqc multiqc_WDir; 
        
     </command>
     <inputs>
-        <!--param name="inputs" type="data" format="txt" multiple="true" label="Tools logs-outputs" /-->
         <repeat name="results" title="Results" min="1">
-                <param name="software" type="select" label="Software name">
-                     <option value="fastqc">FastQC (RawData file)</option>
-                     <option value="cutadapt">Cutadapt (Report file)</option>
-                     <option value="tophat">Tophat2 (align_summary file)</option>
-                     <option value="featurecounts">FeatureCounts (Summary file)</option>
-                     <option value="samtools_stats">Samtools Stats (Stats file)</option>
-                     <option value="picard">Picard (MarkDuplicates metrics file, CollectGTBiasMetrics Summary data file, CollectInsertSizeMetrics file)</option>
-                     <option value="bismark">Bismark (Report file)</option>
-                     <!--option value="bowtie2">Bowtie2</option>
-                     <option value="snpeff">SnpEff</option-->
-                </param>
-                <param name="input_file" type="data" format="txt, tabular" multiple="true" label="Result file" />
+            <param name="software" type="select" label="Software name">
+                <option value="fastqc">FastQC</option>
+                <option value="cutadapt">Cutadapt/Trim Galore!</option>
+                <option value="tophat">Tophat2</option>
+                <option value="featurecounts">FeatureCounts (Summary file)</option>
+                <option value="samtools">Samtools (Stats, Flagstat)</option>
+                <option value="samtools_idxstats">Samtools (Idxstats)</option>
+                <option value="picard">Picard</option>
+                <option value="bismark">Bismark</option>
+                <option value="bowtie2">Bowtie2</option>
+                <option value="htseq">HTSeq-Count</option>
+                <option value="rnastar_log">RNA STAR (log)</option>
+                <option value="rnastar_counts">RNA STAR (reads per gene)</option>
+            </param>
+            <param name="input_file" type="data" format="txt, tabular" multiple="true" label="Result file" />
         </repeat>
     </inputs>
     <outputs>
@@ -97,105 +108,143 @@
         <data format="txt" name="text_file" from_work_dir="multiqc_data/.multiqc.log" label="${tool.name} on ${on_string}: Log"/>
     </outputs>
     <tests>
-      <test>
-         <repeat name="results">
-            <param name="software" value="fastqc" />
-            <param name="input_file" value="fastqc_data.txt" />
-         </repeat>
-         <output name="html_file" file="report_fastqc.html" compare="sim_size" delta="1000"/>
-         <output name="text_file" file="log_fastqc.txt" compare="sim_size" delta="1000"/>     
-       </test>
-       <test>
-         <repeat name="results">
-            <param name="software" value="fastqc" />
-            <param name="input_file" value="fastqc_data.txt,fastqc_data_2.txt" />
-         </repeat>
-         <output name="html_file" file="report_fastqc_2.html" compare="sim_size" delta="1000"/>
-         <output name="text_file" file="log_fastqc_2.txt" compare="sim_size" delta="1000"/>
-      </test>
-      <test>
-         <repeat name="results">
-            <param name="software" value="cutadapt" />
-            <param name="input_file" value="cutadapt.txt" />
-         </repeat>
-         <output name="html_file" file="report_cutadapt.html" compare="sim_size" delta="1000"/>
-         <output name="text_file" file="log_cutadapt.txt" compare="sim_size" delta="1000"/>
-       </test>
-      <test>
-         <repeat name="results">
-            <param name="software" value="tophat" />
-            <param name="input_file" value="tophat_data.txt" />
-         </repeat>
-         <output name="html_file" file="report_tophat.html" compare="sim_size" delta="1000"/>
-         <output name="text_file" file="log_tophat.txt" compare="sim_size" delta="1000"/>
-       </test>
-       <test>
-         <repeat name="results">
-            <param name="software" value="featurecounts" />
-            <param name="input_file" value="featurecounts_data.txt" />
-         </repeat>
-         <output name="html_file" file="report_featurecounts.html" compare="sim_size" delta="1000"/>
-         <output name="text_file" file="log_featurecounts.txt" compare="sim_size" delta="1000"/>
-       </test>
-       <test>
-         <repeat name="results">
-            <param name="software" value="picard" />
-            <param name="input_file" value="collectGcBias_data.txt,CollectInsertSizeMetrics.txt,MarkDuplicates_data.txt" />
-         </repeat>
-         <output name="html_file" file="report_picard.html" compare="sim_size" delta="1000"/>
-         <output name="text_file" file="log_picard.txt" compare="sim_size" delta="1000"/>
-       </test>
-       <test>
-         <repeat name="results">
-            <param name="software" value="bismark" />
-            <param name="input_file" value="bismark_data.txt" />
-         </repeat>
-         <output name="html_file" file="report_bismark.html" compare="sim_size" delta="1000"/>
-         <output name="text_file" file="log_bismark.txt" compare="sim_size" delta="1000"/>
-       </test>
-       <test>
-         <repeat name="results">
-            <param name="software" value="samtools_stats" />
-            <param name="input_file" value="samtools_data.txt" />
-         </repeat>
-         <output name="html_file" file="report_samtools.html" compare="sim_size" delta="1000"/>
-         <output name="text_file" file="log_samtools.txt" compare="sim_size" delta="1000"/>
-       </test>
-    <test>
-        <repeat name="results">
-            <param name="software" value="fastqc" />
-            <param name="input_file" value="fastqc_data.txt,fastqc_data_2.txt" />
-         </repeat>
-         <repeat name="results">
-            <param name="software" value="cutadapt" />
-            <param name="input_file" value="cutadapt.txt" />
-         </repeat>
-         <repeat name="results">
-            <param name="software" value="tophat" />
-            <param name="input_file" value="tophat_data.txt" />
-         </repeat>
-         <repeat name="results">
-            <param name="software" value="featurecounts" />
-            <param name="input_file" value="featurecounts_data.txt" />
-         </repeat>
-         <repeat name="results">
-            <param name="software" value="picard" />
-            <param name="input_file" value="collectGcBias_data.txt,CollectInsertSizeMetrics.txt,MarkDuplicates_data.txt" />
-         </repeat>
-         <repeat name="results">
-            <param name="software" value="bismark" />
-            <param name="input_file" value="bismark_data.txt" />
-         </repeat>
-         <repeat name="results">
-            <param name="software" value="samtools_stats" />
-            <param name="input_file" value="samtools_data.txt" />
-         </repeat>
-
-         <output name="html_file" file="report_all.html" compare="sim_size" delta="3000"/>
-         <output name="text_file" file="log_all.txt" compare="sim_size" delta="3000"/>
-       </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="fastqc" />
+                <param name="input_file" value="fastqc_data.txt" />
+            </repeat>
+            <output name="html_file" file="report_fastqc.html" compare="sim_size" delta="1000"/>
+            <output name="text_file" file="log_fastqc.txt" compare="sim_size" delta="1000"/>     
+        </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="fastqc" />
+                <param name="input_file" value="fastqc_data.txt,fastqc_data_2.txt" />
+            </repeat>
+            <output name="html_file" file="report_fastqc_2.html" compare="sim_size" delta="1000"/>
+            <output name="text_file" file="log_fastqc_2.txt" compare="sim_size" delta="1000"/>
+        </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="cutadapt" />
+                <param name="input_file" value="cutadapt.txt" />
+            </repeat>
+            <output name="html_file" file="report_cutadapt.html" compare="sim_size" delta="1000"/>
+            <output name="text_file" file="log_cutadapt.txt" compare="sim_size" delta="1000"/>
+        </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="tophat" />
+                <param name="input_file" value="tophat_data.txt" />
+            </repeat>
+            <output name="html_file" file="report_tophat.html" compare="sim_size" delta="1000"/>
+            <output name="text_file" file="log_tophat.txt" compare="sim_size" delta="1000"/>
+        </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="bowtie2" />
+                <param name="input_file" value="bowtie2SE1.txt,bowtie2SE2.txt" />
+            </repeat>
+            <output name="html_file" file="report_bowtie2SE.html" compare="sim_size" delta="1000"/>
+            <output name="text_file" file="log_bowtie2SE.txt" compare="sim_size" delta="1000"/>
+        </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="featurecounts" />
+                <param name="input_file" value="featurecounts_data.txt" />
+            </repeat>
+            <output name="html_file" file="report_featurecounts.html" compare="sim_size" delta="1000"/>
+            <output name="text_file" file="log_featurecounts.txt" compare="sim_size" delta="1000"/>
+        </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="picard" />
+                <param name="input_file" value="collectGcBias_data.txt,CollectInsertSizeMetrics.txt,MarkDuplicates_data.txt,picard_CollectBaseDistributionByCycle.txt,picard_CollectRnaSeqMetrics.txt,picard_CollectAlignmentSummaryMetrics.txt" />
+            </repeat>
+            <output name="html_file" file="report_picard.html" compare="sim_size" delta="1000"/>
+            <output name="text_file" file="log_picard.txt" compare="sim_size" delta="1000"/>
+        </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="htseq" />
+                <param name="input_file" value="htseq_data.txt" />
+            </repeat>
+            <output name="html_file" file="report_htseq.html" compare="sim_size" delta="1000"/>
+            <output name="text_file" file="log_htseq.txt" compare="sim_size" delta="1000"/>
+        </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="rnastar_log" />
+                <param name="input_file" value="rnastar_log.txt" />
+            </repeat>
+            <output name="html_file" file="report_rnastar_log.html" compare="sim_size" delta="1000"/>
+            <output name="text_file" file="log_rnastar_log.txt" compare="sim_size" delta="1000"/>
+        </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="rnastar_counts" />
+                <param name="input_file" value="rnastar_counts.txt" />
+            </repeat>
+            <output name="html_file" file="report_rnastar_counts.html" compare="sim_size" delta="1000"/>
+            <output name="text_file" file="log_rnastar_counts.txt" compare="sim_size" delta="1000"/>
+        </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="bismark" />
+                <param name="input_file" value="bismark_data.txt" />
+            </repeat>
+            <output name="html_file" file="report_bismark.html" compare="sim_size" delta="1000"/>
+            <output name="text_file" file="log_bismark.txt" compare="sim_size" delta="1000"/>
+        </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="samtools" />
+                <param name="input_file" value="samtools_stats.txt,samtools_flagstat.txt" />
+            </repeat>
+            <output name="html_file" file="report_samtools.html" compare="sim_size" delta="1000"/>
+            <output name="text_file" file="log_samtools.txt" compare="sim_size" delta="1000"/>
+        </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="samtools_idxstats" />
+                <param name="input_file" value="samtools_idxstats.txt" />
+            </repeat>
+            <output name="html_file" file="report_samtools_idxstats.html" compare="sim_size" delta="1000"/>
+            <output name="text_file" file="log_samtools_idxstats.txt" compare="sim_size" delta="1000"/>
+        </test>
+        <test>
+            <repeat name="results">
+                <param name="software" value="fastqc" />
+                <param name="input_file" value="fastqc_data.txt,fastqc_data_2.txt" />
+            </repeat>
+            <repeat name="results">
+                <param name="software" value="cutadapt" />
+                <param name="input_file" value="cutadapt.txt" />
+            </repeat>
+            <repeat name="results">
+                <param name="software" value="tophat" />
+                <param name="input_file" value="tophat_data.txt" />
+            </repeat>
+            <repeat name="results">
+                <param name="software" value="featurecounts" />
+                <param name="input_file" value="featurecounts_data.txt" />
+            </repeat>
+            <repeat name="results">
+                <param name="software" value="picard" />
+                <param name="input_file" value="collectGcBias_data.txt,CollectInsertSizeMetrics.txt,MarkDuplicates_data.txt" />
+            </repeat>
+            <repeat name="results">
+                <param name="software" value="bismark" />
+                <param name="input_file" value="bismark_data.txt" />
+            </repeat>
+            <repeat name="results">
+                <param name="software" value="samtools" />
+                <param name="input_file" value="samtools_stats.txt,samtools_flagstat.txt" />
+            </repeat>
+            <output name="html_file" file="report_all.html" compare="sim_size" delta="3000"/>
+            <output name="text_file" file="log_all.txt" compare="sim_size" delta="3000"/>
+        </test>
     </tests>
-
 
     <help>
 **What it does**
@@ -206,23 +255,37 @@ MultiQC aggregates results from bioinformatics analyses across many samples into
 
 **Description**
 
-MultiQC searches a given directory for analysis logs and compiles a HTML report. It's a general use tool, perfect for summarising the output from numerous bioinformatics tools.
+MultiQC searches a given directory for analysis logs and compiles an HTML report. It's a general use tool, perfect for summarising the output from numerous bioinformatics tools.
 
 ----
 
 **Inputs**
 
-MultiQC takes software outputs summary in order to create a single report. Below a list of compatible Galaxy tools :
+MultiQC takes software output summaries/logs and creates a single report from them. Below is a list of currently compatible Galaxy tools:
 
  - Fastqc
- - Cutadapt
+ - Cutadapt / Trim Galore!
  - Tophat2
  - FeatureCounts
- - Samtools stats
- - Picard MarkDuplicates metrics
- - Picard CollectGTBiasMetrics
- - Picard CollectInsertSizeMetrics
+ - Samtools
+   - stats
+   - flagstat
+   - idxstats
+ - Picard
+   - MarkDuplicates metrics
+   - CollectGCBiasMetrics
+   - CollectInsertSizeMetrics
+   - Collect Alignment Summary Metrics
+   - CollectBaseDistributionByCycle
+   - CollectRnaSeqMetrics
  - Bismark
+   - Alignment report file
+ - Bowtie2
+   - Metrics file
+ - HTSeq-count ("no feature" file), though note that the "Assigned" metric is always 0
+ - RNA STAR
+   - Alignment (ends in Log.final.out)
+   - Gene counts (ends in ReadsPerGene.out.tab)
 
 ----
 
@@ -233,9 +296,7 @@ Cyril Monjeaud and Yvan Le Bras
 `EnginesOn &lt;http://engineson.fr/&gt;`_ and Rennes GenOuest Bio-informatics Core Facility
 
     </help>
-
- <citations>
-    <citation type="doi">10.1093/bioinformatics/btw354</citation>
-  </citations>
+    <citations>
+        <citation type="doi">10.1093/bioinformatics/btw354</citation>
+    </citations>
 </tool>
-
