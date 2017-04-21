@@ -18,5 +18,5 @@ install:
 
 script:
   - set -e
-  - planemo conda_install tools/multiqc/
+  - conda install -c bioconda multiqc==0.9.0
   - planemo test --conda_dependency_resolution --galaxy_branch "$GALAXY_RELEASE" --galaxy_source "$GALAXY_REPO" tools/multiqc/
