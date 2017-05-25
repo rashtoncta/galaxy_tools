@@ -1,5 +1,5 @@
 <tool id="multiqc" name="multiqc" version="1.0.0.0">
-    <description>aggregate results from bioinformatics analyses across many samples into a single report</description>
+    <description>aggregate results from bioinformatics analyses into a single report</description>
     <requirements>
        <requirement type="package" version="1.0.0">multiqc</requirement>
     </requirements>
@@ -33,7 +33,7 @@
                 #for $file in $repeat.input_file:
                     cat '${file}' > 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}.txt';
                     ## replace header for old cutadapt release
-                    sed -i 's/You are running/This is/' 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}.txt';               
+                    sed -i .old 's/You are running/This is/' 'multiqc_WDir/${repeat.software}_${i}/${file.display_name}.txt';               
                 #end for
             #else if str($repeat.software) == "featurecounts":
                 ## Checks for files ending in '.summary'
@@ -85,7 +85,7 @@
     </command>
     <inputs>
         <repeat name="results" title="Results" min="1">
-            <param name="software" type="select" label="Software name">
+            <param name="software" type="select" label="Software name" help="Which tool was used generate logs?">
                 <option value="fastqc">FastQC</option>
                 <option value="cutadapt">Cutadapt/Trim Galore!</option>
                 <option value="tophat">Tophat2</option>
@@ -99,7 +99,7 @@
                 <option value="rnastar_log">RNA STAR (log)</option>
                 <option value="rnastar_counts">RNA STAR (reads per gene)</option>
             </param>
-            <param name="input_file" type="data" format="txt, tabular" multiple="true" label="Result file" />
+            <param name="input_file" type="data" format="txt, tabular" multiple="true" label="Result file" help="Select input datasets"/>
             <param name="saveLog" type="boolean" checked="false" label="Save log file" help="Save the multiQC log file to the history. This is mostly useful for debugging purposes."/>
         </repeat>
     </inputs>
@@ -239,67 +239,26 @@
     <help>
 **What it does**
 
-MultiQC aggregates results from bioinformatics analyses across many samples into a single report
-
-----
-
-**Description**
-
-MultiQC searches a given directory for analysis logs and compiles an HTML report. It's a general use tool, perfect for summarising the output from numerous bioinformatics tools.
+MultiQC aggregates results from bioinformatics analyses across many samples into a single report. It takes results of multiple analyses and creates a report that can be viewed as a single beautiful web-page. It's a general use tool, perfect for summarizing the output from numerous bioinformatics tools.
 
 **Inputs**
 
-MultiQC takes software output summaries/logs and creates a single report from them. Below is a list of currently compatible Galaxy tools:
+MultiQC takes software output summaries/logs and creates a single report from them. You need to tell the tool which software was used to generate the report. This is done using the **Software name** dropdown. At present the following Galaxy tools produce logs that can used with MultiQC. There are:
 
- - Fastqc
-
- - Cutadapt / Trim Galore!
-
- - Tophat2
-
- - FeatureCounts
-
- - Samtools
-
-   - stats
-
-   - flagstat
-
-   - idxstats
-
- - Picard
-
-   - MarkDuplicates metrics
-
-   - CollectGCBiasMetrics
-
-   - CollectInsertSizeMetrics
-
-   - Collect Alignment Summary Metrics
-
-   - CollectBaseDistributionByCycle
-
-   - CollectRnaSeqMetrics
-
- - Bismark
-
-   - Alignment report file
-
- - Bowtie2
-
-   - Metrics file
-
- - HTSeq-count ("no feature" file), though note that the "Assigned" metric is always 0
-
- - RNA STAR
-
-   - Alignment (ends in Log.final.out)
-
-   - Gene counts (ends in ReadsPerGene.out.tab)
+- Fastqc
+- Cutadapt / Trim Galore!
+- Tophat2
+- FeatureCounts
+- Samtools (stats, flagstat, dxstats)
+- Picard (MarkDuplicatesMetrics, CollectGCBiasMetrics, CollectInsertSizeMetrics, CollectAlignmentSummaryMetrics, CollectRnaSeqMetrics)
+- Bismark (Alignment report file)
+- Bowtie2 (Metrics file)
+- HTSeq-count ("no feature" file; although the "Assigned" metric is always 0)
+- RNA STAR (Alignment from Log.final.out, Gene counts from ReadsPerGene.out.tab)
 
 ----
 
-**Integrated by:**
+**Integrated by**
 
 Cyril Monjeaud and Yvan Le Bras
 
