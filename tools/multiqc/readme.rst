@@ -26,6 +26,7 @@ Important: For a good view of multiqc webpage, you need to deactivate the saniti
 History
 =======
 
+ * v1.0.0.0	Update to multiQC 1.0, add additional supported tools
  * v0.6:        Initial public release
 
 ==========

@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<tool_dependency>
-    <package name="multiqc" version="0.6">
-        <repository name="package_multiqc_0_6" owner="engineson" toolshed="http://toolshed.g2.bx.psu.edu" />
-    </package>
-    <package name="libpng" version="1.6.7">
-        <repository name="package_libpng_1_6_7" owner="iuc" toolshed="http://toolshed.g2.bx.psu.edu" />
-    </package>
-</tool_dependency>
