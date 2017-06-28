@@ -15,12 +15,13 @@ Requirements: pkg-config
 Conda recipe: A conda recipe exists in bioconda repository. If you have a recent Galaxy release, the packages installation is not mandatory.
 
 ================
-MultiQC webpage
+Prevent displaying MultiQC webpage as gibberish
 ================
 
-Important: For a good view of multiqc webpage, you need to deactivate the sanitize_all_html option in galaxy.ini
+For Galaxy to display MultiQC's HTML output properly, you need to either:
 
-  sanitize_all_html = False
+1. Deactivate the sanitize_all_html option in galaxy.ini (sanitize_all_html = False), or
+2. Whitelist the tool in "Manage Display Whitelist" after installing
 
 =======
 History
