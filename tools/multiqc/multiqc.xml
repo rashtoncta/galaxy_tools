@@ -237,7 +237,7 @@ multiqc multiqc_WDir
         </test>
     </tests>
 
-    <help>
+    <help><![CDATA[
 **What it does**
 
 MultiQC aggregates results from bioinformatics analyses across many samples into a single report. It takes results of multiple analyses and creates a report that can be viewed as a single beautiful web-page. It's a general use tool, perfect for summarizing the output from numerous bioinformatics tools.
@@ -265,7 +265,7 @@ Cyril Monjeaud and Yvan Le Bras
 
 `EnginesOn &lt;http://engineson.fr/&gt;`_ and Rennes GenOuest Bio-informatics Core Facility
 
-    </help>
+    ]]></help>
     <citations>
         <citation type="doi">10.1093/bioinformatics/btw354</citation>
     </citations>
