@@ -6,6 +6,7 @@
     <stdio>
         <exit_code range="1:" />
     </stdio>
+    <version_command>multiqc -v</version_command>
     <command>
 <![CDATA[
 mkdir multiqc_WDir &&
