@@ -6,11 +6,8 @@
     <requirements>
        <requirement type="package" version="@WRAPPER_VERSION@">multiqc</requirement>
     </requirements>
-    <stdio>
-        <exit_code range="1:" />
-    </stdio>
-    <version_command>multiqc -v</version_command>
-    <command>
+    <version_command>@WRAPPER_VERSION@</version_command>
+    <command detect_errors="aggressive">
 <![CDATA[
 mkdir multiqc_WDir &&
 
