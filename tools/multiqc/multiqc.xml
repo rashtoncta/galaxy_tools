@@ -1,88 +1,93 @@
-<tool id="multiqc" name="multiqc" version="1.0.0.0">
+<tool id="multiqc" name="multiqc" version="@WRAPPER_VERSION@.0">
     <description>aggregate results from bioinformatics analyses into a single report</description>
+    <macros>
+        <token name="@WRAPPER_VERSION@">1.0.0</token>
+    </macros>
     <requirements>
-       <requirement type="package" version="1.0.0">multiqc</requirement>
+       <requirement type="package" version="@WRAPPER_VERSION@">multiqc</requirement>
     </requirements>
-    <stdio>
-        <exit_code range="1:" />
-    </stdio>
-    <command>
-        mkdir multiqc_WDir;
+    <version_command>@WRAPPER_VERSION@</version_command>
+    <command detect_errors="aggressive">
+<![CDATA[
+mkdir multiqc_WDir &&
 
-        #for $i, $repeat in enumerate( $results )
-            mkdir multiqc_WDir/${repeat.software}_${i};
+#for $i, $repeat in enumerate( $results )
+    mkdir multiqc_WDir/${repeat.software}_${i} &&
 
-            #if str($repeat.software) == "fastqc":
-                ## Searches for files named "fastqc_data.txt"
-                #for $k, $file in enumerate($repeat.input_file):
-                    mkdir multiqc_WDir/${repeat.software}_${i}/file_${k};
-                    ln -s '${file}' multiqc_WDir/fastqc_${i}/file_${k}/fastqc_data.txt;
-                #end for
-            #else if str($repeat.software) == "tophat":
-                ## Searches for files ending in "align_summary.txt"
-                #for $file in $repeat.input_file:
-                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}align_summary.txt';
-                #end for
-            #else if str($repeat.software) == "bowtie2":
-                ## Searches for files containing 'reads; of these;'
-                #for $file in $repeat.input_file:
-                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}.txt';
-                #end for
-            #else if str($repeat.software) == "cutadapt":
-                ## Searches for files containing 'This is cutadapt'
-                #for $file in $repeat.input_file:
-                    cat '${file}' > 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}.txt';
-                    ## replace header for old cutadapt release
-                    sed -i .old 's/You are running/This is/' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}.txt';
-                #end for
-            #else if str($repeat.software) == "featurecounts":
-                ## Checks for files ending in '.summary'
-                #for $k, $file in enumerate($repeat.input_file):
-                    mkdir multiqc_WDir/${repeat.software}_${i}/file_${k};
-                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/file_${k}/${file.element_identifier}.summary';
-                #end for
-            #else if str($repeat.software) == "bismark":
-                ## Checks for files ending in _SE_report.txt
-                #for $file in $repeat.input_file
-                    ln -s ${file} 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}_SE_report.txt';
-                #end for
-            #else if str($repeat.software) == "samtools":
-                ## Checks for files containing 'This file was produced by samtools stats'
-                #for $file in $repeat.input_file
-                    ln -s ${file} 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}';
-                #end for
-            #else if str($repeat.software) == "picard":
-                #for $file in $repeat.input_file
-                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}';
-                #end for
-            #else if str($repeat.software) == "samtools_idxstats":
-                ## Checks for files containing "idxstats" in the name
-                #for $file in $repeat.input_file
-                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}_idxstats.txt';
-                #end for
-            #else if str($repeat.software) == "htseq":
-                ## Checks for files containing "__too_low_aQual"
-                #for $file in $repeat.input_file
-                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}';
-                #end for
-            #else if str($repeat.software) == "rnastar_log":
-                ## Checks for files named Log.final.out
-                #for $k, $file in enumerate($repeat.input_file):
-                    mkdir 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}';
-                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}/Log.final.out';
-                #end for
-            #else if str($repeat.software) == "rnastar_counts":
-                ## Checks for files named ReadsPerGene.out.tab
-                #for $k, $file in enumerate($repeat.input_file):
-                    mkdir 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}';
-                    ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}/ReadsPerGene.out.tab';
-                #end for
+    #if str($repeat.software) == "fastqc":
+        ## Searches for files named "fastqc_data.txt"
+        #for $k, $file in enumerate($repeat.input_file):
+            mkdir multiqc_WDir/${repeat.software}_${i}/file_${k} &&
+            ln -s '${file}' multiqc_WDir/fastqc_${i}/file_${k}/fastqc_data.txt &&
+        #end for
+    #else if str($repeat.software) == "tophat":
+        ## Searches for files ending in "align_summary.txt"
+        #for $file in $repeat.input_file:
+            ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}align_summary.txt' &&
+        #end for
+    #else if str($repeat.software) == "bowtie2":
+        ## Searches for files containing 'reads; of these;'
+        #for $file in $repeat.input_file:
+            ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}.txt' &&
+        #end for
+    #else if str($repeat.software) == "cutadapt":
+        ## Searches for files containing 'This is cutadapt'
+        #for $file in $repeat.input_file:
+            cat '${file}' > 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}.txt' &&
+            ## replace header for old cutadapt release
+            sed -i .old 's/You are running/This is/' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}.txt' &&
+        #end for
+    #else if str($repeat.software) == "featurecounts":
+        ## Checks for files ending in '.summary'
+        #for $file in $repeat.input_file
+            #if $file.metadata.column_names and $file.metadata.column_names.find(',') != -1
+                echo '$file.metadata.column_names.replace(',','\t').replace('__ob__u','').replace('u__sq__','').replace('__sq__','').replace('__cb__','')' >> 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}.summary' &&
+                cat '$file' >> 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}.summary' &&
+            #else
+                ln -s '$file' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}.summary' &&
             #end if
         #end for
+    #else if str($repeat.software) == "bismark":
+        ## Checks for files ending in _SE_report.txt
+        #for $file in $repeat.input_file
+            ln -s ${file} 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}_SE_report.txt' &&
+        #end for
+    #else if str($repeat.software) == "samtools":
+        ## Checks for files containing 'This file was produced by samtools stats'
+        #for $file in $repeat.input_file
+            ln -s ${file} 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}' &&
+        #end for
+    #else if str($repeat.software) == "picard":
+        #for $file in $repeat.input_file
+            ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}' &&
+        #end for
+    #else if str($repeat.software) == "samtools_idxstats":
+        ## Checks for files containing "idxstats" in the name
+        #for $file in $repeat.input_file
+            ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}_idxstats.txt' &&
+        #end for
+    #else if str($repeat.software) == "htseq":
+        ## Checks for files containing "__too_low_aQual"
+        #for $file in $repeat.input_file
+            ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}' &&
+        #end for
+    #else if str($repeat.software) == "rnastar_log":
+        ## Checks for files named Log.final.out
+        #for $k, $file in enumerate($repeat.input_file):
+            mkdir 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}' &&
+            ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}/Log.final.out' &&
+        #end for
+    #else if str($repeat.software) == "rnastar_counts":
+        ## Checks for files named ReadsPerGene.out.tab
+        #for $k, $file in enumerate($repeat.input_file):
+            mkdir 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}' &&
+            ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}/ReadsPerGene.out.tab' &&
+        #end for
+    #end if
+#end for
 
-        multiqc multiqc_WDir;
-
-    </command>
+multiqc multiqc_WDir
+    ]]></command>
     <inputs>
         <repeat name="results" title="Results" min="1">
             <param name="software" type="select" label="Software name" help="Which tool was used generate logs?">
@@ -100,13 +105,13 @@
                 <option value="rnastar_counts">RNA STAR (reads per gene)</option>
             </param>
             <param name="input_file" type="data" format="txt, tabular" multiple="true" label="Result file" help="Select input datasets"/>
-            <param name="saveLog" type="boolean" checked="false" label="Save log file" help="Save the multiQC log file to the history. This is mostly useful for debugging purposes."/>
         </repeat>
+        <param name="saveLog" type="boolean" truevalue="true" falsevalue="false" checked="false" label="Save log file" help="Save the multiQC log file to the history. This is mostly useful for debugging purposes."/>
     </inputs>
     <outputs>
         <data format="html" from_work_dir="multiqc_report.html" name="html_file" label="${tool.name} on ${on_string}: Webpage" />
         <data format="txt" name="text_file" from_work_dir="multiqc_data/multiqc.log" label="${tool.name} on ${on_string}: Log">
-            <filter>saveLog is True</filter>
+            <filter>saveLog</filter>
         </data>
     </outputs>
     <tests>
@@ -236,7 +241,7 @@
         </test>
     </tests>
 
-    <help>
+    <help><![CDATA[
 **What it does**
 
 MultiQC aggregates results from bioinformatics analyses across many samples into a single report. It takes results of multiple analyses and creates a report that can be viewed as a single beautiful web-page. It's a general use tool, perfect for summarizing the output from numerous bioinformatics tools.
@@ -248,7 +253,7 @@ MultiQC takes software output summaries/logs and creates a single report from th
 - Fastqc
 - Cutadapt / Trim Galore!
 - Tophat2
-- FeatureCounts
+- FeatureCounts (summary file with the column header in the first line or as metadata)
 - Samtools (stats, flagstat, dxstats)
 - Picard (MarkDuplicatesMetrics, CollectGCBiasMetrics, CollectInsertSizeMetrics, CollectAlignmentSummaryMetrics, CollectRnaSeqMetrics)
 - Bismark (Alignment report file)
@@ -264,7 +269,7 @@ Cyril Monjeaud and Yvan Le Bras
 
 `EnginesOn &lt;http://engineson.fr/&gt;`_ and Rennes GenOuest Bio-informatics Core Facility
 
-    </help>
+    ]]></help>
     <citations>
         <citation type="doi">10.1093/bioinformatics/btw354</citation>
     </citations>
