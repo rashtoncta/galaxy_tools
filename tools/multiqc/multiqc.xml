@@ -39,9 +39,13 @@ mkdir multiqc_WDir &&
         #end for
     #else if str($repeat.software) == "featurecounts":
         ## Checks for files ending in '.summary'
-        #for $k, $file in enumerate($repeat.input_file):
-            mkdir multiqc_WDir/${repeat.software}_${i}/file_${k} &&
-            ln -s '${file}' 'multiqc_WDir/${repeat.software}_${i}/file_${k}/${file.element_identifier}.summary' &&
+        #for $file in $repeat.input_file
+            #if $file.metadata.column_names and $file.metadata.column_names.find(',') != -1
+                echo '$file.metadata.column_names.replace(',','\t').replace('__ob__u','').replace('u__sq__','').replace('__sq__','').replace('__cb__','')' >> 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}.summary' &&
+                cat '$file' >> 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}.summary' &&
+            #else
+                ln -s '$file' 'multiqc_WDir/${repeat.software}_${i}/${file.element_identifier}.summary' &&
+            #end if
         #end for
     #else if str($repeat.software) == "bismark":
         ## Checks for files ending in _SE_report.txt
@@ -249,7 +253,7 @@ MultiQC takes software output summaries/logs and creates a single report from th
 - Fastqc
 - Cutadapt / Trim Galore!
 - Tophat2
-- FeatureCounts
+- FeatureCounts (summary file with the column header in the first line or as metadata)
 - Samtools (stats, flagstat, dxstats)
 - Picard (MarkDuplicatesMetrics, CollectGCBiasMetrics, CollectInsertSizeMetrics, CollectAlignmentSummaryMetrics, CollectRnaSeqMetrics)
 - Bismark (Alignment report file)
