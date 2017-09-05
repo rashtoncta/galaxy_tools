@@ -173,8 +173,8 @@ sp:
                 <when value="htseq" />
                 <when value="rnastar_log" />
                 <when value="rnastar_counts" />
+		<when value="kallisto"/>
                 <when value="custom_content">
-		<when value="kallisto">
                     <conditional name="cc_cond">
                         <param name="cc_select" type="select" label="MultiQC configuration" help="The configuration set the graph title and axis labels">
                             <option value="embedded">Embedded within the file header</option>
