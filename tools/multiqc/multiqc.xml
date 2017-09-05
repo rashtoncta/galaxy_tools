@@ -94,6 +94,11 @@ mkdir multiqc_WDir &&
             mkdir 'multiqc_WDir/${repeat.software_cond.software}_${i}/${file.element_identifier}' &&
             ln -s '${file}' 'multiqc_WDir/${repeat.software_cond.software}_${i}/${file.element_identifier}_${i}_mqc.out' &&
         #end for
+    #else if str($repeat.software_cond.software) == "kallisto":
+        ## Checks for files named ____
+        #for $file in $repeat.input_file:
+            ln -s '${file}' 'multiqc_WDir/${file.element_identifier}_kallisto_log.txt' &&
+        #end for
     #end if
 #end for
 
@@ -154,6 +159,7 @@ sp:
                     <option value="rnastar_log">RNA STAR (log)</option>
                     <option value="rnastar_counts">RNA STAR (reads per gene)</option>
                     <option value="custom_content">Custom Content (Generic tabular file)</option>
+		    <option value="kallisto">Kallisto</option>
                 </param>
                 <when value="fastqc" />
                 <when value="cutadapt" />
@@ -168,6 +174,7 @@ sp:
                 <when value="rnastar_log" />
                 <when value="rnastar_counts" />
                 <when value="custom_content">
+		<when value="kallisto">
                     <conditional name="cc_cond">
                         <param name="cc_select" type="select" label="MultiQC configuration" help="The configuration set the graph title and axis labels">
                             <option value="embedded">Embedded within the file header</option>
@@ -415,6 +422,7 @@ MultiQC takes software output summaries/logs and creates a single report from th
 - HTSeq-count ("no feature" file; although the "Assigned" metric is always 0)
 - RNA STAR (Alignment from Log.final.out, Gene counts from ReadsPerGene.out.tab)
 - Custom Content (Generic tabular file)
+- Kallisto (Kallisto log file)
 
 ----
 
