@@ -400,6 +400,15 @@ sp:
             </repeat>
             <output name="html_file" file="report_custom_content.html" compare="sim_size" delta="1000"/>
         </test>
+	<test>
+            <repeat name="results">
+                <conditional name="software_cond">
+                    <param name="software" value="kallisto" />
+                </conditional>
+                <param name="input_file" value="kallisto_log.txt,kallisto_log_2.txt" />
+            </repeat>
+            <output name="html_file" file="report_kallisto.html" compare="sim_size" delta="20000"/>
+        </test>
     </tests>
 
     <help><![CDATA[
